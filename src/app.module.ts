@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/typeorm.config';
+import { WeatherModule } from './weather/weather.module';
+import { SubscriptionModule } from './subscription/subscription.module';
+import { EmailService } from './email/email.service';
 
 @Module({
   imports: [
@@ -12,8 +13,10 @@ import { typeOrmConfig } from './config/typeorm.config';
       inject: [ConfigService],
       useFactory: typeOrmConfig,
     }),
+    WeatherModule,
+    SubscriptionModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  providers: [EmailService],
+  exports: [EmailService],
 })
 export class AppModule {}
