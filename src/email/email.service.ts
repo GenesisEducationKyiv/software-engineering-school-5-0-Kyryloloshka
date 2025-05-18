@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { WeatherResponse } from 'src/common/types/weather';
 
 @Injectable()
 export class EmailService {
@@ -48,12 +49,9 @@ export class EmailService {
     email: string;
     city: string;
     token: string;
-    weather: {
-      temperature: number;
-      humidity: string;
-      description: string;
-    };
+    weather: WeatherResponse;
   }): Promise<void> {
+    const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe.html?token=${token}`;
     const mailOptions = {
       from: `"Weather App" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -63,7 +61,7 @@ export class EmailService {
         <p>Humidity: ${weather.humidity}%</p>
         <p>Description: ${weather.description}</p>
         <p>Thank you for using our service!</p>
-        <p>If you wish to unsubscribe, please click <a href="${process.env.APP_URL}/unsubscribe.html?token=${token}">here</a>.</p>
+        <p>If you wish to unsubscribe, please click <a href="${unsubscribeUrl}">here</a>.</p>
       `,
     };
 

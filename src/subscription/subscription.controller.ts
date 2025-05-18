@@ -37,6 +37,7 @@ export class SubscriptionController {
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async subscribe(@Body() dto: CreateSubscriptionDto) {
     const token = await this.subscriptionService.subscribe(dto);
+
     return {
       message: 'Subscription successful. Confirmation email sent.',
       token,

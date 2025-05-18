@@ -1,21 +1,21 @@
-// src/scheduler/weather.scheduler.ts
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { SubscriptionService } from 'src/subscription/subscription.service';
 import { WeatherService } from 'src/weather/weather.service';
 import { EmailService } from 'src/email/email.service';
+import { Frequency } from 'src/common/types/frequency';
 
 @Injectable()
 export class SchedulerService {
-  private readonly log = new Logger(SchedulerService.name);
+  private readonly logger = new Logger(SchedulerService.name);
 
   constructor(
-    private readonly subService: SubscriptionService,
+    private readonly subscriptionService: SubscriptionService,
     private readonly weatherService: WeatherService,
     private readonly emailService: EmailService,
   ) {}
 
-  @Cron('12 * * * *')
+  @Cron('0 * * * *')
   async processHourly(): Promise<void> {
     await this.processByFrequency('hourly');
   }
@@ -25,28 +25,26 @@ export class SchedulerService {
     await this.processByFrequency('daily');
   }
 
-  private async processByFrequency(freq: 'hourly' | 'daily') {
-    const subs = await this.subService.findConfirmedByFrequency(freq);
-    if (!subs.length) return;
+  private async processByFrequency(frequency: Frequency) {
+    const subscriptions =
+      await this.subscriptionService.findConfirmedByFrequency(frequency);
+    if (!subscriptions.length) return;
 
-    this.log.log(`Processing ${subs.length} ${freq} subs`);
-
-    for (const sub of subs) {
+    for (const subscription of subscriptions) {
       try {
         const weather = await this.weatherService.getWeather({
-          city: sub.city,
+          city: subscription.city,
         });
-        console.log(`Weather for ${sub.city}:`, weather);
 
         await this.emailService.sendWeatherUpdate({
-          email: sub.email,
-          token: sub.token,
-          city: sub.city,
+          email: subscription.email,
+          token: subscription.token,
+          city: subscription.city,
           weather,
         });
       } catch (err: any) {
-        this.log.error(
-          `Failed to send weather to ${sub.email} (${sub.city})`,
+        this.logger.error(
+          `Failed to send weather to ${subscription.email} (${subscription.city})`,
           err as any,
         );
       }

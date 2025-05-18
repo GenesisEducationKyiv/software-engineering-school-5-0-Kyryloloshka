@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Subscription } from './entities/subscription.entity';
 import { randomBytes } from 'crypto';
 import { EmailService } from 'src/email/email.service';
+import { CreateSubscriptionDto } from './dto/create-subscription.dto';
+import { Frequency } from 'src/common/types/frequency';
 
 @Injectable()
 export class SubscriptionService {
@@ -13,7 +15,7 @@ export class SubscriptionService {
     private readonly emailService: EmailService,
   ) {}
 
-  async subscribe(dto: any): Promise<string> {
+  async subscribe(dto: CreateSubscriptionDto): Promise<string> {
     const existing = await this.subscriptionRepo.findOne({
       where: { email: dto.email },
     });
@@ -30,8 +32,6 @@ export class SubscriptionService {
     });
 
     await this.subscriptionRepo.save(subscription);
-    console.log(subscription);
-
     await this.emailService.sendConfirmationEmail(dto.email, token);
 
     return token;
@@ -40,10 +40,12 @@ export class SubscriptionService {
     const subscription = await this.subscriptionRepo.findOne({
       where: { token },
     });
+
     if (!subscription) return false;
 
     subscription.confirmed = true;
     await this.subscriptionRepo.save(subscription);
+
     return true;
   }
 
@@ -51,17 +53,19 @@ export class SubscriptionService {
     const subscription = await this.subscriptionRepo.findOne({
       where: { token },
     });
+
     if (!subscription) return false;
 
     await this.subscriptionRepo.remove(subscription);
+
     return true;
   }
 
   async findConfirmedByFrequency(
-    freq: 'hourly' | 'daily',
+    frequency: Frequency,
   ): Promise<Subscription[]> {
     return this.subscriptionRepo.find({
-      where: { confirmed: true, frequency: freq },
+      where: { confirmed: true, frequency },
     });
   }
 }

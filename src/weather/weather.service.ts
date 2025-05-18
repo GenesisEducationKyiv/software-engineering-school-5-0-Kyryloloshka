@@ -9,6 +9,7 @@ import { GetWeatherDto } from './dto/get-weather.dto';
 import { ConfigService } from '@nestjs/config';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { AxiosError } from 'axios';
+import { WeatherResponse } from 'src/common/types/weather';
 
 @Injectable()
 export class WeatherService {
@@ -16,12 +17,14 @@ export class WeatherService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {}
-  async getWeather({ city }: GetWeatherDto) {
+  async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {
     const apiKey = this.configService.get<string>('WEATHER_API_KEY');
     if (!apiKey) {
       throw new InternalServerErrorException('Weather API key not configured');
     }
+
     const url = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(city)}`;
+
     try {
       const response = await firstValueFrom(
         this.httpService.get(url).pipe(
@@ -32,6 +35,7 @@ export class WeatherService {
             ) {
               return throwError(() => new NotFoundException('City not found'));
             }
+
             return throwError(
               () =>
                 new InternalServerErrorException(
@@ -41,6 +45,7 @@ export class WeatherService {
           }),
         ),
       );
+
       const data = response.data;
       return {
         temperature: data.current.temp_c,

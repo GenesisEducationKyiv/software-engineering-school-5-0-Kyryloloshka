@@ -1,3 +1,4 @@
+import { Frequency } from 'src/common/types/frequency';
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -12,7 +13,7 @@ export class Subscription {
   city: string;
 
   @Column()
-  frequency: 'hourly' | 'daily' | 'every-minute';
+  frequency: Frequency;
 
   @Column({ default: false })
   confirmed: boolean;
