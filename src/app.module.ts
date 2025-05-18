@@ -4,10 +4,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/typeorm.config';
 import { WeatherModule } from './weather/weather.module';
 import { SubscriptionModule } from './subscription/subscription.module';
-import { EmailService } from './email/email.service';
+import { ScheduleModule } from '@nestjs/schedule';
+import { SchedulerModule } from './scheduler/scheduler.module';
+import { EmailModule } from './email/email.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      exclude: ['/api*', '/swagger*'],
+    }),
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -15,8 +24,8 @@ import { EmailService } from './email/email.service';
     }),
     WeatherModule,
     SubscriptionModule,
+    SchedulerModule,
+    EmailModule,
   ],
-  providers: [EmailService],
-  exports: [EmailService],
 })
 export class AppModule {}

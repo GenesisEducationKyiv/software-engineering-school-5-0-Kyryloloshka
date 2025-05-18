@@ -56,4 +56,12 @@ export class SubscriptionService {
     await this.subscriptionRepo.remove(subscription);
     return true;
   }
+
+  async findConfirmedByFrequency(
+    freq: 'hourly' | 'daily',
+  ): Promise<Subscription[]> {
+    return this.subscriptionRepo.find({
+      where: { confirmed: true, frequency: freq },
+    });
+  }
 }

@@ -9,5 +9,6 @@ import { EmailService } from 'src/email/email.service';
   imports: [TypeOrmModule.forFeature([Subscription])],
   providers: [SubscriptionService, EmailService],
   controllers: [SubscriptionController],
+  exports: [SubscriptionService],
 })
 export class SubscriptionModule {}

@@ -13,8 +13,12 @@ import {
   ApiOperation,
   ApiResponse,
   ApiParam,
-  ApiBody,
   ApiConsumes,
+  ApiNotFoundResponse,
+  ApiBadRequestResponse,
+  ApiOkResponse,
+  ApiConflictResponse,
+  ApiCreatedResponse,
 } from '@nestjs/swagger';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 
@@ -25,19 +29,11 @@ export class SubscriptionController {
   @Post('subscribe')
   @ApiOperation({ summary: 'Subscribe to weather updates' })
   @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
-  @ApiBody({ type: CreateSubscriptionDto })
-  @ApiResponse({
-    status: 201,
+  @ApiCreatedResponse({
     description: 'Subscription successful. Confirmation email sent.',
   })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid input',
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'Email already subscribed',
-  })
+  @ApiBadRequestResponse({ description: 'Invalid input' })
+  @ApiConflictResponse({ description: 'Email already subscribed' })
   @UsePipes(new ValidationPipe({ whitelist: true }))
   async subscribe(@Body() dto: CreateSubscriptionDto) {
     const token = await this.subscriptionService.subscribe(dto);
@@ -50,25 +46,16 @@ export class SubscriptionController {
   @Get('confirm/:token')
   @ApiOperation({ summary: 'Confirm your email address' })
   @ApiParam({ name: 'token', description: 'Token from confirmation email' })
-  @ApiResponse({
-    status: 200,
-    description: 'Subscription confirmed successfully.',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid token',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Token not found.',
-  })
+  @ApiOkResponse({ description: 'Subscription confirmed successfully.' })
+  @ApiBadRequestResponse({ description: 'Invalid token' })
+  @ApiNotFoundResponse({ description: 'Token not found.' })
   async confirm(@Param('token') token: string) {
     const result = await this.subscriptionService.confirmSubscription(token);
     if (!result) throw new NotFoundException('Invalid or expired token');
     return { message: 'Subscription confirmed successfully' };
   }
 
-  @Post('unsubscribe/:token')
+  @Get('unsubscribe/:token')
   @ApiOperation({
     summary:
       'Unsubscribes an email from weather updates using the token sent in emails.',
