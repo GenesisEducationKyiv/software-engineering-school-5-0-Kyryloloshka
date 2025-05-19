@@ -7,10 +7,8 @@ import { Subscription } from './entities/subscription.entity';
 const repoMock = () => ({
   findOne: jest.fn(),
   save: jest.fn(),
-  // додай інші методи за потребою
 });
 
-// --- мок EmailService, щоб не слати листи в юніт-тесті
 const emailMock = () => ({
   sendConfirmation: jest.fn(),
 });

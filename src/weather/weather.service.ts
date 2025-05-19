@@ -1,4 +1,3 @@
-// src/weather/weather.service.ts
 import {
   Injectable,
   InternalServerErrorException,

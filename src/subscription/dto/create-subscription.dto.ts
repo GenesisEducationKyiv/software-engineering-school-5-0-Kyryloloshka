@@ -1,4 +1,3 @@
-// create-subscription.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsEnum, IsString } from 'class-validator';
 

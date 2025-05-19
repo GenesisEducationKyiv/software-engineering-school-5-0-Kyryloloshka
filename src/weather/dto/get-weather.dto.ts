@@ -1,4 +1,3 @@
-// src/weather/dto/get-weather.dto.ts
 import { IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
