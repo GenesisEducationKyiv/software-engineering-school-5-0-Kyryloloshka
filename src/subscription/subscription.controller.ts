@@ -11,7 +11,6 @@ import {
 import { SubscriptionService } from './subscription.service';
 import {
   ApiOperation,
-  ApiResponse,
   ApiParam,
   ApiConsumes,
   ApiNotFoundResponse,
@@ -62,18 +61,9 @@ export class SubscriptionController {
       'Unsubscribes an email from weather updates using the token sent in emails.',
   })
   @ApiParam({ name: 'token', description: 'Unsibscribe token' })
-  @ApiResponse({
-    status: 200,
-    description: 'Successfully unsubscribed.',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid token',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Token not found.',
-  })
+  @ApiOkResponse({ description: 'Successfully unsubscribed.' })
+  @ApiBadRequestResponse({ description: 'Invalid token' })
+  @ApiNotFoundResponse({ description: 'Token not found.' })
   async unsubscribe(@Param('token') token: string) {
     const result = await this.subscriptionService.unsubscribe(token);
     if (!result)

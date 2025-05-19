@@ -34,18 +34,18 @@ services:
       dockerfile: Dockerfile
     container_name: weather-api
     ports:
-      - '5000:5000'
+      - '5000:3000'
     depends_on:
       - postgres
     environment:
-      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_HOST: postgres
       DATABASE_PORT: ${DATABASE_PORT}
       DATABASE_USER: ${DATABASE_USER}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_NAME: ${DATABASE_NAME}
     env_file:
       - .env
-    command: npm run start:dev
+    command: npm run start:prod
 volumes:
   pgdata:
   pgadmin_data:

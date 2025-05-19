@@ -20,34 +20,8 @@
     <h2>
       Wellcome to the Weather App!
     </h2>
+    <br />
+    <p>To see swagger api <a class="" style="color: #990099" href="/api/">follow the link</a></p>
   </body>
-  <script>
-    const f = document.getElementById('subForm');
-    const msg = document.getElementById('msg');
-
-    f.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      msg.textContent = 'Sending…';
-
-      const data = Object.fromEntries(new FormData(f).entries());
-
-      try {
-        const res = await fetch('/api/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        });
-        const json = await res.json();
-        if (res.ok) {
-          msg.textContent = json.message;
-          f.reset();
-        } else {
-          msg.textContent = json.message || 'Error';
-        }
-      } catch (err) {
-        msg.textContent = 'Network error';
-      }
-    });
-  </script>
 </body>
 </html>
