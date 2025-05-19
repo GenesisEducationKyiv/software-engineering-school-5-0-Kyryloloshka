@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import { WeatherResponse } from 'src/common/types/weather';
+import { WeatherResponse } from './../common/types/weather';
 
 @Injectable()
 export class EmailService {

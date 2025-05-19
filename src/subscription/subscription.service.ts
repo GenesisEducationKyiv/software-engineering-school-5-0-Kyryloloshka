@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Subscription } from './entities/subscription.entity';
 import { randomBytes } from 'crypto';
-import { EmailService } from 'src/email/email.service';
+import { EmailService } from './../email/email.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
-import { Frequency } from 'src/common/types/frequency';
+import { Frequency } from './../common/types/frequency';
 
 @Injectable()
 export class SubscriptionService {

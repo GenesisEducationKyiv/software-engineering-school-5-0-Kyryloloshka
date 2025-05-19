@@ -9,7 +9,7 @@ import { GetWeatherDto } from './dto/get-weather.dto';
 import { ConfigService } from '@nestjs/config';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { AxiosError } from 'axios';
-import { WeatherResponse } from 'src/common/types/weather';
+import { WeatherResponse } from './../common/types/weather';
 
 @Injectable()
 export class WeatherService {

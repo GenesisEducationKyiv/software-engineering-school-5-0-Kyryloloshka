@@ -1,4 +1,4 @@
-import { Frequency } from 'src/common/types/frequency';
+import { Frequency } from './../../common/types/frequency';
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()

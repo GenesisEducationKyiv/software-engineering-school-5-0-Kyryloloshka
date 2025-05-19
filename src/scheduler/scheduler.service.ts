@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { SubscriptionService } from 'src/subscription/subscription.service';
-import { WeatherService } from 'src/weather/weather.service';
-import { EmailService } from 'src/email/email.service';
-import { Frequency } from 'src/common/types/frequency';
+import { SubscriptionService } from './../subscription/subscription.service';
+import { WeatherService } from './../weather/weather.service';
+import { EmailService } from './../email/email.service';
+import { Frequency } from './../common/types/frequency';
 
 @Injectable()
 export class SchedulerService {
