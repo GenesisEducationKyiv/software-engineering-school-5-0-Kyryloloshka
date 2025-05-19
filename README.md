@@ -126,6 +126,7 @@ Before getting started with genesis-test-assignment, ensure your runtime environ
 ```sh
 ❯ pnpm start:dev
 ```
+**And after open localhost:3000/api/**
 
 ###  Testing
 Run the test suite using the following command:
