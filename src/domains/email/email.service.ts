@@ -1,12 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
-import { WeatherResponse } from './../common/types/weather';
+import Handlebars from 'handlebars';
+import { createTransport } from 'nodemailer';
+import path from 'path';
+import { WeatherResponse } from 'src/common/types/weather';
+import { promises as fs } from 'fs';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
 
-  private transporter = nodemailer.createTransport({
+  private transporter = createTransport({
     host: process.env.EMAIL_HOST,
     port: parseInt(process.env.EMAIL_PORT),
     secure: false,
@@ -16,19 +19,29 @@ export class EmailService {
     },
   });
 
+  private async compileTemplate(
+    templateName: string,
+    context: Record<string, any>,
+  ): Promise<string> {
+    const templatePath = path.join(
+      __dirname,
+      'templates',
+      `${templateName}.hbs`,
+    );
+    const templateSource = await fs.readFile(templatePath, 'utf8');
+    const template = Handlebars.compile(templateSource);
+    return template(context);
+  }
+
   async sendConfirmationEmail(email: string, token: string): Promise<void> {
     const confirmUrl = `${process.env.APP_URL}/confirm.html?token=${token}`;
+    const html = await this.compileTemplate('confirm', { confirmUrl });
 
     const mailOptions = {
       from: `"Weather App" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Confirm your weather subscription',
-      html: `
-        <p>Thank you for subscribing!</p>
-        <p>Click the link below to confirm your subscription:</p>
-        <a href="${confirmUrl}">Confirm</a>
-        <p>If you did not request this, please ignore this email.</p>
-      `,
+      html,
     };
 
     try {
@@ -52,17 +65,19 @@ export class EmailService {
     weather: WeatherResponse;
   }): Promise<void> {
     const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe.html?token=${token}`;
+
+    const html = await this.compileTemplate('weather', {
+      temperature: weather.temperature,
+      humidity: weather.humidity,
+      description: weather.description,
+      unsubscribeUrl,
+    });
+
     const mailOptions = {
       from: `"Weather App" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: `Here is your weather update ${city}`,
-      html: `
-        <p>Temperature: ${weather.temperature}°C</p>
-        <p>Humidity: ${weather.humidity}%</p>
-        <p>Description: ${weather.description}</p>
-        <p>Thank you for using our service!</p>
-        <p>If you wish to unsubscribe, please click <a href="${unsubscribeUrl}">here</a>.</p>
-      `,
+      html,
     };
 
     try {

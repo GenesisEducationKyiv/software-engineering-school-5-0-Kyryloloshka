@@ -3,8 +3,8 @@ import { SubscriptionService } from './subscription.service';
 import { SubscriptionController } from './subscription.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Subscription } from './entities/subscription.entity';
-import { EmailService } from './../email/email.service';
-import { WeatherService } from 'src/weather/weather.service';
+import { EmailService } from '../email/email.service';
+import { WeatherService } from 'src/domains/weather/weather.service';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({

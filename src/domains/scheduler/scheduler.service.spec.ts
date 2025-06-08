@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SchedulerService } from './scheduler.service';
-import { SubscriptionService } from './../subscription/subscription.service';
-import { WeatherService } from './../weather/weather.service';
-import { EmailService } from './../email/email.service';
+import { SubscriptionService } from '../subscription/subscription.service';
+import { WeatherService } from '../weather/weather.service';
+import { EmailService } from '../email/email.service';
 
 describe('SchedulerService', () => {
   let service: SchedulerService;

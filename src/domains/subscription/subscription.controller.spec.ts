@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SubscriptionController } from './subscription.controller';
 import { SubscriptionService } from './subscription.service';
-import { EmailService } from './../email/email.service';
+import { EmailService } from '../email/email.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Subscription } from './entities/subscription.entity';
 

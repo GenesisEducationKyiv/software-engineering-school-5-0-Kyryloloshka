@@ -8,7 +8,7 @@ import { GetWeatherDto } from './dto/get-weather.dto';
 import { ConfigService } from '@nestjs/config';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { AxiosError } from 'axios';
-import { WeatherResponse } from './../common/types/weather';
+import { WeatherResponse } from '../../common/types/weather';
 
 @Injectable()
 export class WeatherService {
@@ -22,7 +22,7 @@ export class WeatherService {
       throw new InternalServerErrorException('Weather API key not configured');
     }
 
-    const url = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(city)}`;
+    const url = `${process.env.WEATHER_BASE_API_URL}/current.json?key=${apiKey}&q=${encodeURIComponent(city)}`;
 
     const response = await firstValueFrom(
       this.httpService.get(url).pipe(

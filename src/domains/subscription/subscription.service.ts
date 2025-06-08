@@ -7,10 +7,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Subscription } from './entities/subscription.entity';
 import { randomBytes } from 'crypto';
-import { EmailService } from './../email/email.service';
+import { EmailService } from '../email/email.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
-import { Frequency } from './../common/types/frequency';
-import { WeatherService } from 'src/weather/weather.service';
+import { Frequency } from 'src/common/types/frequency';
+import { WeatherService } from 'src/domains/weather/weather.service';
 
 @Injectable()
 export class SubscriptionService {

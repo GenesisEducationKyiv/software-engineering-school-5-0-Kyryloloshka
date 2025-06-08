@@ -60,7 +60,7 @@ export class SubscriptionController {
     summary:
       'Unsubscribes an email from weather updates using the token sent in emails.',
   })
-  @ApiParam({ name: 'token', description: 'Unsibscribe token' })
+  @ApiParam({ name: 'token', description: 'Unsubscribe token' })
   @ApiOkResponse({ description: 'Successfully unsubscribed.' })
   @ApiBadRequestResponse({ description: 'Invalid token' })
   @ApiNotFoundResponse({ description: 'Token not found.' })
