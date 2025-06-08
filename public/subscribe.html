@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Weather Subscription</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="header">
+    <a href="/">WeatherApp</a>
+    <nav>
+      <ul class="flex gap-8">
+        <li><a href="/">Home</a></li>
+        <li><a href="/get-weather.html">Get Weather</a></li>
+        <li><a href="/subscribe.html">Subscribe</a></li>
+      </ul>
+    </nav>
+  </header>
+  <body>
+    <h2>Subscribe to weather updates</h2>
+
+    <form id="subForm">
+      <input name="email" type="email" placeholder="Email" required />
+      <input name="city" placeholder="City" required />
+      <select name="frequency" required>
+        <option value="">Frequency</option>
+        <option value="hourly">Hourly</option>
+        <option value="daily">Daily</option>
+      </select>
+      <button type="submit">Subscribe</button>
+    </form>
+
+    <div class="msg" id="msg"></div>
+  </body>
+  <script>
+    const f = document.getElementById('subForm');
+    const msg = document.getElementById('msg');
+
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = 'Sending…';
+
+      const data = Object.fromEntries(new FormData(f).entries());
+
+      try {
+        const res = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        const json = await res.json();
+        if (res.ok) {
+          msg.textContent = json.message;
+          f.reset();
+        } else {
+          msg.textContent = json.message || 'Error';
+        }
+      } catch (err) {
+        msg.textContent = 'Network error';
+      }
+    });
+  </script>
+</body>
+</html>
