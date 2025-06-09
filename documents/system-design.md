@@ -28,7 +28,7 @@ This is a rest API service that allows users to subscribe to the city's weather 
 ### 2.3 Restrictions 
 
 - Only Postgresql as a DBMS. 
-- Weather data with Weatherapa.
+- Weather data with Weatherapi.
 
 ---
 
@@ -37,8 +37,8 @@ This is a rest API service that allows users to subscribe to the city's weather 
 ### 3.1 Users and Traffic 
 
 - Number of users: up to 1000 active. 
-- requests: 
-- Peak load: ~ 20 req/Sec 
+- Requests: 10 req/sec on average.
+- Peak load: ~20 req/sec 
 - Email mailing: up to 1000 email/h. 
 
 ### 3.2 Data 
@@ -103,7 +103,7 @@ flowchart TD
 
 ### 6.3 Weather Fetcher 
 
-- call Weather Api with the key. 
+- Call Weather Api with the key. 
 - Parsing response to a simplified structure. 
 - (optional) Caching the answer for 10 minutes. 
 - Error processing and timeouts. 
