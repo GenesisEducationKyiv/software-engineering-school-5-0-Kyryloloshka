@@ -7,12 +7,11 @@ import { Frequency } from 'src/common/types/frequency';
 
 @Injectable()
 export class SchedulerService {
-  private readonly logger = new Logger(SchedulerService.name);
-
   constructor(
     private readonly subscriptionService: SubscriptionService,
     private readonly weatherService: WeatherService,
     private readonly emailService: EmailService,
+    private readonly logger: Logger = new Logger(SchedulerService.name),
   ) {}
 
   @Cron('0 * * * *')
@@ -28,6 +27,7 @@ export class SchedulerService {
   private async processByFrequency(frequency: Frequency) {
     const subscriptions =
       await this.subscriptionService.findConfirmedByFrequency(frequency);
+
     if (!subscriptions.length) return;
 
     for (const subscription of subscriptions) {
