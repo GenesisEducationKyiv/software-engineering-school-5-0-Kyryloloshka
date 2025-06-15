@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="./style.css" />
+  <title>Confirm subscription</title>
+  <style>
+    #msg{margin-top:24px}
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="/">WeatherApp</a>
+    <nav>
+      <ul class="flex gap-8">
+        <li><a href="/">Home</a></li>
+        <li><a href="/get-weather.html">Get Weather</a></li>
+        <li><a href="/subscribe.html">Subscribe</a></li>
+      </ul>
+    </nav>
+  </header>
+  <body>
+    <h2>Confirming your subscription…</h2>
+    <div id="msg">Please wait…</div>
+  </body>
+  <script>
+    (async () => {
+      const msg = document.getElementById('msg');
+
+      const url = new URL(window.location.href);
+      const token = url.searchParams.get('token');
+
+      if (!token) {
+        msg.textContent = 'Token is missing 😞';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/confirm/${token}`);
+        const json = await res.json();
+
+        msg.textContent = res.ok
+          ? 'Subscription confirmed 🎉'
+          : json.message || 'Error';
+      } catch (_) {
+        msg.textContent = 'Network error';
+      }
+    })();
+  </script>
+</body>
+</html>
