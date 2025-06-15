@@ -7,11 +7,12 @@ import { Frequency } from 'src/common/types/frequency';
 
 @Injectable()
 export class SchedulerService {
+  private readonly logger: Logger = new Logger(SchedulerService.name);
+
   constructor(
     private readonly subscriptionService: SubscriptionService,
     private readonly weatherService: WeatherService,
     private readonly emailService: EmailService,
-    private readonly logger: Logger = new Logger(SchedulerService.name),
   ) {}
 
   @Cron('0 * * * *')
@@ -28,7 +29,7 @@ export class SchedulerService {
     const subscriptions =
       await this.subscriptionService.findConfirmedByFrequency(frequency);
 
-    if (!subscriptions.length) return;
+    if (subscriptions.length === 0) return;
 
     for (const subscription of subscriptions) {
       try {
@@ -36,16 +37,27 @@ export class SchedulerService {
           city: subscription.city,
         });
 
+        if (!weather) {
+          this.logger.warn(`No weather data for city: ${subscription.city}`);
+          continue;
+        }
+
         await this.emailService.sendWeatherUpdate({
           email: subscription.email,
           token: subscription.token,
           city: subscription.city,
           weather,
         });
-      } catch (err: any) {
+
+        this.logger.log(
+          `Weather update sent to ${subscription.email} (${subscription.city})`,
+        );
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
         this.logger.error(
-          `Failed to send weather to ${subscription.email} (${subscription.city})`,
-          err as any,
+          `Failed to send weather to ${subscription.email} (${subscription.city}): ${errorMessage}`,
+          error as any,
         );
       }
     }
