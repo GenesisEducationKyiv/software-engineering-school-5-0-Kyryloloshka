@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class GetWeatherDto {
@@ -7,5 +7,6 @@ export class GetWeatherDto {
     description: 'City name for weather forecast',
   })
   @IsString()
+  @IsNotEmpty({ message: 'City is required' })
   city: string;
 }

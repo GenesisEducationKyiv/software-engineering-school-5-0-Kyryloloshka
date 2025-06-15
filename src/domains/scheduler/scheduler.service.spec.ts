@@ -20,17 +20,17 @@ describe('SchedulerService', () => {
     service = module.get(SchedulerService);
   });
 
-  function mockSubSvc(): Partial<jest.Mocked<SubscriptionService>> {
+  const mockSubSvc = (): Partial<jest.Mocked<SubscriptionService>> => {
     return {
       findConfirmedByFrequency: jest.fn(),
     };
-  }
-  function mockWeatherSvc(): Partial<jest.Mocked<WeatherService>> {
+  };
+  const mockWeatherSvc = (): Partial<jest.Mocked<WeatherService>> => {
     return { getWeather: jest.fn() };
-  }
-  function mockEmailSvc(): Partial<jest.Mocked<EmailService>> {
+  };
+  const mockEmailSvc = (): Partial<jest.Mocked<EmailService>> => {
     return { sendWeatherUpdate: jest.fn() };
-  }
+  };
 
   it('should be defined', () => {
     expect(service).toBeDefined();

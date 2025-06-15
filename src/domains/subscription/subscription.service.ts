@@ -2,15 +2,16 @@ import {
   Injectable,
   ConflictException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Subscription } from './entities/subscription.entity';
-import { randomBytes } from 'crypto';
 import { EmailService } from '../email/email.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { Frequency } from 'src/common/types/frequency';
 import { WeatherService } from 'src/domains/weather/weather.service';
+import { generateToken } from 'src/common/generators/token.generator';
 
 @Injectable()
 export class SubscriptionService {
@@ -22,21 +23,21 @@ export class SubscriptionService {
   ) {}
 
   async subscribe(dto: CreateSubscriptionDto): Promise<string> {
-    const existing = await this.subscriptionRepo.findOne({
+    const existingSubscription = await this.subscriptionRepo.findOne({
       where: { email: dto.email },
     });
-    if (existing) {
+    if (existingSubscription) {
       throw new ConflictException('Email already subscribed');
     }
 
     const weather = await this.weatherService.getWeather({
       city: dto.city,
     });
-    if (!weather) {
+    if (!weather || !weather.temperature) {
       throw new BadRequestException('Invalid input');
     }
 
-    const token = randomBytes(16).toString('hex');
+    const token = generateToken();
 
     const subscription = this.subscriptionRepo.create({
       ...dto,
@@ -50,29 +51,29 @@ export class SubscriptionService {
     return token;
   }
 
-  async confirmSubscription(token: string): Promise<boolean> {
+  async confirmSubscription(token: string): Promise<void> {
     const subscription = await this.subscriptionRepo.findOne({
       where: { token },
     });
 
-    if (!subscription) return false;
+    if (!subscription) {
+      throw new NotFoundException('Invalid or expired token');
+    }
 
     subscription.confirmed = true;
     await this.subscriptionRepo.save(subscription);
-
-    return true;
   }
 
-  async unsubscribe(token: string): Promise<boolean> {
+  async unsubscribe(token: string): Promise<void> {
     const subscription = await this.subscriptionRepo.findOne({
       where: { token },
     });
 
-    if (!subscription) return false;
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found or invalid token');
+    }
 
     await this.subscriptionRepo.remove(subscription);
-
-    return true;
   }
 
   async findConfirmedByFrequency(
