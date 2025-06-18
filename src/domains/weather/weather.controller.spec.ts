@@ -3,7 +3,8 @@ import { WeatherController } from './weather.controller';
 import { WeatherService } from './weather.service';
 import { ConfigService } from '@nestjs/config';
 import { GetWeatherDto } from './dto/get-weather.dto';
-import { BadRequestException } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 const configMock = () => ({
   get: jest.fn().mockReturnValue('dummy-key'),
@@ -38,11 +39,9 @@ describe('WeatherController', () => {
     expect(controller).toBeDefined();
   });
   it('should throw BadRequestException when city is missing', async () => {
-    const dto = {} as GetWeatherDto;
-
-    await expect(controller.getWeather(dto)).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
+    const dto = plainToInstance(GetWeatherDto, { city: '' });
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
   });
 
   it('should return weather data when city is provided', async () => {

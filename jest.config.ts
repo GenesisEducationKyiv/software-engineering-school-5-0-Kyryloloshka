@@ -1,4 +1,5 @@
 export default {
+  testPathIgnorePatterns: ['/node_modules/', '/e2e/'],
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: '.',
   testRegex: '.*\\.spec\\.ts$',
