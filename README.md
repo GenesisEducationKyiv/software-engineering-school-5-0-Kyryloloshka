@@ -89,11 +89,11 @@ Before getting started with genesis-test-assignment, ensure your runtime environ
 ###  + Prerequisites for dev mode with a database in docker
 - **Nest cli:**
 ```sh
-❯ npm install -g @nestjs/cli
+npm install -g @nestjs/cli
 ```
 - **Package Manager:** Pnpm
 ```sh
-❯ npm install -g pnpm
+npm install -g pnpm
 ```
 
 
@@ -102,16 +102,16 @@ Before getting started with genesis-test-assignment, ensure your runtime environ
 
 1. Clone the genesis-test-assignment repository:
 ```sh
-❯ git clone https://github.com/Kyryloloshka/genesis-test-assignment
+git clone https://github.com/Kyryloloshka/genesis-test-assignment
 ```
 
 2. Navigate to the project directory:
 ```sh
-❯ cd genesis-test-assignment
+cd genesis-test-assignment
 ```
 3. Build docker container
 ```sh
-❯ docker compose up --build
+docker compose up --build
 ```
 4. Open localhost:5000/api/
    &nbsp;
@@ -119,21 +119,34 @@ Before getting started with genesis-test-assignment, ensure your runtime environ
  
 **Install dependencies using `pnpm`** 
 ```sh
-❯ pnpm i
+pnpm i
 ```
 
 **Start project in dev mode `pnpm`** 
 ```sh
-❯ pnpm start:dev
+pnpm start:dev
 ```
 **And after open localhost:3000/api/**
 
 ###  Testing
-Run the test suite using the following command:
-**Using `pnpm`** &nbsp;
+#### 3.1 Integration Tests
+To run integration tests, execute the following command:
 
-```sh
-❯ pnpm test
+```bash
+npm run test
+```
+or
+```bash
+pnpm test
 ```
 
----
+#### 3.2 E2E Tests
+To run E2E tests with Playwright, execute the following command:
+
+```bash
+npm run test:pw
+```
+or
+```bash
+pnpm test:pw
+```

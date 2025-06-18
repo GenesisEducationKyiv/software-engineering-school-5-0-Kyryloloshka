@@ -20,9 +20,9 @@
     <h2>Subscribe to weather updates</h2>
 
     <form id="subForm">
-      <input name="email" type="email" placeholder="Email" required />
-      <input name="city" placeholder="City" required />
-      <select name="frequency" required>
+      <input name="email" placeholder="Email" />
+      <input name="city" placeholder="City" />
+      <select name="frequency">
         <option value="">Frequency</option>
         <option value="hourly">Hourly</option>
         <option value="daily">Daily</option>
@@ -41,7 +41,22 @@
       msg.textContent = 'Sending…';
 
       const data = Object.fromEntries(new FormData(f).entries());
-
+      if (!data.city) {
+        msg.textContent = 'City is required';
+        return;
+      }
+      if (!data.email) {
+        msg.textContent = 'Email is required';
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+        msg.textContent = 'Invalid email format';
+        return;
+      }
+      if (!data.frequency) {
+        msg.textContent = 'Frequency is required';
+        return;
+      }
       try {
         const res = await fetch('/api/subscribe', {
           method: 'POST',
