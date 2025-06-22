@@ -78,7 +78,7 @@ describe('SubscriptionService', () => {
       repo.save.mockResolvedValueOnce({});
       email.sendConfirmationEmail.mockResolvedValueOnce(undefined);
 
-      const token = await service.subscribe({
+      const { token } = await service.subscribe({
         email: 'test@mail.com',
         city: 'Kyiv',
         frequency: 'daily',

@@ -22,7 +22,7 @@ export class SubscriptionService {
     private readonly weatherService: WeatherService,
   ) {}
 
-  async subscribe(dto: CreateSubscriptionDto): Promise<string> {
+  async subscribe(dto: CreateSubscriptionDto): Promise<{ token: string }> {
     const existingSubscription = await this.subscriptionRepo.findOne({
       where: { email: dto.email },
     });
@@ -48,7 +48,7 @@ export class SubscriptionService {
     await this.subscriptionRepo.save(subscription);
     await this.emailService.sendConfirmationEmail(dto.email, token);
 
-    return token;
+    return { token };
   }
 
   async confirmSubscription(token: string): Promise<void> {
