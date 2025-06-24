@@ -9,6 +9,7 @@ import { SchedulerModule } from './domains/scheduler/scheduler.module';
 import { EmailModule } from './domains/email/email.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { envValidationSchema } from './config/env.validation';
 
 @Module({
   imports: [
@@ -17,7 +18,10 @@ import { join } from 'path';
       exclude: ['/api', '/swagger'],
     }),
     ScheduleModule.forRoot(),
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: envValidationSchema,
+    }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: typeOrmConfig,
