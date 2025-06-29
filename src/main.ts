@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { register } from 'prom-client';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,6 +25,11 @@ async function bootstrap() {
       },
     }),
   );
+
+  app.getHttpAdapter().get('/api/metrics', async (req, res) => {
+    res.setHeader('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Weather Subscription API')

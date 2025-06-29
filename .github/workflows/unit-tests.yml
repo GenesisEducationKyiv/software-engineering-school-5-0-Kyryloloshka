@@ -1,4 +1,4 @@
-name: Test (Integration Tests)
+name: Test (End to End Tests)
 
 on:
   [push, pull_request]
@@ -23,5 +23,5 @@ jobs:
         run: pnpm install
 
       - name: Run tests
-        run: pnpm test:int
+        run: pnpm test
 
