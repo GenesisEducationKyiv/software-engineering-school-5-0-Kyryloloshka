@@ -1,4 +1,4 @@
-name: Test (End to End Tests)
+name: Test (unit Tests)
 
 on:
   [push, pull_request]
