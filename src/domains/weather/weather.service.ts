@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { AxiosError } from 'axios';
 import { WeatherResponse } from '../../common/types/weather';
+import { mapToWeatherResponse } from 'src/common/mappers/weather.mapper';
 
 @Injectable()
 export class WeatherService {
@@ -42,11 +43,6 @@ export class WeatherService {
       ),
     );
 
-    const data = response.data;
-    return {
-      temperature: data.current.temp_c,
-      humidity: data.current.humidity,
-      description: data.current.condition.text,
-    };
+    return mapToWeatherResponse(response.data);
   }
 }

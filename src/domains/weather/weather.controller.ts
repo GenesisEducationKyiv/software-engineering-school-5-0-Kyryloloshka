@@ -1,4 +1,4 @@
-import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { WeatherService } from './weather.service';
 import { GetWeatherDto } from './dto/get-weather.dto';
 import {
@@ -31,10 +31,6 @@ export class WeatherController {
   @ApiBadRequestResponse({ description: 'Invalid request' })
   @ApiNotFoundResponse({ description: 'City not found' })
   async getWeather(@Query() query: GetWeatherDto) {
-    if (!query.city) {
-      throw new BadRequestException('City is required');
-    }
-
     return this.weatherService.getWeather(query);
   }
 }

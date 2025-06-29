@@ -24,8 +24,9 @@ export class EmailService {
     context: Record<string, any>,
   ): Promise<string> {
     const templatePath = path.join(
-      __dirname,
-      'templates',
+      process.cwd(),
+      'public',
+      'email-templates',
       `${templateName}.hbs`,
     );
     const templateSource = await fs.readFile(templatePath, 'utf8');

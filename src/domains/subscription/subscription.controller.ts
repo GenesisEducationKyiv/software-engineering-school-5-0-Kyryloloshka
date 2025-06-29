@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  NotFoundException,
-  Param,
-  Post,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { SubscriptionService } from './subscription.service';
 import {
   ApiOperation,
@@ -33,7 +24,6 @@ export class SubscriptionController {
   })
   @ApiBadRequestResponse({ description: 'Invalid input' })
   @ApiConflictResponse({ description: 'Email already subscribed' })
-  @UsePipes(new ValidationPipe({ whitelist: true }))
   async subscribe(@Body() dto: CreateSubscriptionDto) {
     const token = await this.subscriptionService.subscribe(dto);
 
@@ -50,8 +40,8 @@ export class SubscriptionController {
   @ApiBadRequestResponse({ description: 'Invalid token' })
   @ApiNotFoundResponse({ description: 'Token not found.' })
   async confirm(@Param('token') token: string) {
-    const result = await this.subscriptionService.confirmSubscription(token);
-    if (!result) throw new NotFoundException('Invalid or expired token');
+    await this.subscriptionService.confirmSubscription(token);
+
     return { message: 'Subscription confirmed successfully' };
   }
 
@@ -65,9 +55,8 @@ export class SubscriptionController {
   @ApiBadRequestResponse({ description: 'Invalid token' })
   @ApiNotFoundResponse({ description: 'Token not found.' })
   async unsubscribe(@Param('token') token: string) {
-    const result = await this.subscriptionService.unsubscribe(token);
-    if (!result)
-      throw new NotFoundException('Subscription not found or invalid token');
+    await this.subscriptionService.unsubscribe(token);
+
     return { message: 'Successfully unsubscribed' };
   }
 }
