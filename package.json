@@ -26,7 +26,7 @@
     "test:e2e": "npx playwright test",
     "db:restart": "docker compose down && docker compose up -d && sleep 1",
     "pretest:int": "pnpm db:restart && pnpm migration:run:test",
-    "test:int": "cross-env NODE_ENV=test dotenv -e .env.test.local -- jest -i --no-cache --config jest-int.ts",
+    "test:int": "cross-env NODE_ENV=test dotenv -e .env.test.local -- jest -i --no-cache --config jest-int.ts --detectOpenHandles",
     "test:int:watch": "cross-env NODE_ENV=test dotenv -e .env.test.local -- jest -i --no-cache --watch --config jest-int.ts",
     "test:pw:e2e": "dotenv -e .env.test.local -- nest start --watch"
   },
