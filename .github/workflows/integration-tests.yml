@@ -23,7 +23,7 @@ jobs:
         run: pnpm install
 
       - name: Copy env file
-        run: cp .env.example .env.test.local
+        run: cp .env.example .env
       
       - name: Run tests
         run: pnpm test:int
