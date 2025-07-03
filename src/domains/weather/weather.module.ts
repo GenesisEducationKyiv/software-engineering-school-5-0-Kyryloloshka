@@ -7,7 +7,7 @@ import { WeatherProviderChain } from './providers/weather-provider-chain';
 import { OpenMeteoWeatherProvider } from './providers/open-meteo-provider';
 import { WeatherApiProvider } from './providers/weather-api-provider';
 import Redis from 'ioredis';
-import { WeatherProviderCacheDecorator } from './decorators/cache.decorator';
+import { WeatherProviderCacheProxy } from './decorators/cache.decorator';
 
 @Module({
   imports: [HttpModule, ConfigModule],
@@ -38,7 +38,7 @@ import { WeatherProviderCacheDecorator } from './decorators/cache.decorator';
           weatherApiProvider,
           openMeteoWeatherProvider,
         ]);
-        return new WeatherProviderCacheDecorator(
+        return new WeatherProviderCacheProxy(
           chain,
           redis,
           parseInt(configService.get('CACHE_WEATHER_TTL')),

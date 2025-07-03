@@ -17,7 +17,7 @@ const cacheDuration = new Histogram({
   help: 'Duration of weather cache requests in seconds',
 });
 
-export class WeatherProviderCacheDecorator implements IWeatherProvider {
+export class WeatherProviderCacheProxy implements IWeatherProvider {
   constructor(
     private readonly provider: IWeatherProvider,
     private readonly redis: Redis,

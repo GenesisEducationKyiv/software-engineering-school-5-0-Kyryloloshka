@@ -1,10 +1,16 @@
-import { AppModule } from 'src/app.module';
 import { Test } from '@nestjs/testing';
+import { AppModule } from 'src/app.module';
 import { DataSource } from 'typeorm';
 import { SubscriptionService } from '../../subscription.service';
-import { Subscription } from '../../entities/subscription.entity';
 import { EmailService } from 'src/domains/email/email.service';
 import { CreateSubscriptionDto } from '../../dto/create-subscription.dto';
+import { Subscription } from '../../entities/subscription.entity';
+import { INestApplication } from '@nestjs/common';
+import { server } from 'src/common/mock/server';
+
+jest.mock('@nestjs-modules/mailer/dist/adapters/handlebars.adapter', () => ({
+  HandlebarsAdapter: jest.fn(),
+}));
 
 class MockEmailService {
   async sendConfirmationEmail() {
@@ -18,6 +24,7 @@ class MockEmailService {
 describe('SubscriptionService Int', () => {
   let dataSource: DataSource;
   let service: SubscriptionService;
+  let app: INestApplication;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -26,15 +33,23 @@ describe('SubscriptionService Int', () => {
       .overrideProvider(EmailService)
       .useValue(new MockEmailService())
       .compile();
-
+    app = moduleRef.createNestApplication();
+    await app.init();
     dataSource = moduleRef.get(DataSource);
     service = moduleRef.get(SubscriptionService);
+    server.listen();
   });
-
   beforeEach(async () => {
     await dataSource.query(
       'TRUNCATE TABLE "subscription" RESTART IDENTITY CASCADE;',
     );
+  });
+  afterEach(() => server.resetHandlers());
+
+  afterAll(async () => {
+    await app.close();
+    jest.resetAllMocks();
+    server.close();
   });
 
   it('should create a new subscription and send confirmation', async () => {

@@ -1,9 +1,9 @@
-name: Test (unit Tests)
+name: Test (Integration Tests)
 
 on:
   [push, pull_request]
 jobs:
-  unit-test:
+  int-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -22,6 +22,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Copy env file
+        run: cp .env.example .env
+
+      - name: Copy local env file
+        run: cp .env.example .env.test.local
+
       - name: Run tests
-        run: pnpm test
+        run: pnpm test:int
 
