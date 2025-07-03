@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: './test/e2e',
   webServer: {
     command: 'pnpm start:dev',
     url: 'http://localhost:3000',
