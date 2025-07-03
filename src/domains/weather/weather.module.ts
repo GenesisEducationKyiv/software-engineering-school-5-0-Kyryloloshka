@@ -7,11 +7,14 @@ import { WeatherProviderChain } from './providers/weather-provider-chain';
 import { OpenMeteoWeatherProvider } from './providers/open-meteo-provider';
 import { WeatherApiProvider } from './providers/weather-api-provider';
 import Redis from 'ioredis';
-import { WeatherProviderCacheProxy } from './decorators/cache.decorator';
+import { WeatherProviderCacheProxy } from './proxy/cache.proxy';
+import { MetricsService } from './metrics/metrics.service';
+import { MetricsController } from './metrics/metrics.controller';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
-  imports: [HttpModule, ConfigModule],
-  controllers: [WeatherController],
+  imports: [HttpModule, ConfigModule, MetricsModule],
+  controllers: [WeatherController, MetricsController],
   providers: [
     WeatherService,
     WeatherApiProvider,
@@ -31,6 +34,7 @@ import { WeatherProviderCacheProxy } from './decorators/cache.decorator';
       useFactory: (
         weatherApiProvider: WeatherApiProvider,
         openMeteoWeatherProvider: OpenMeteoWeatherProvider,
+        MetricsService: MetricsService,
         redis: Redis,
         configService: ConfigService,
       ) => {
@@ -41,6 +45,7 @@ import { WeatherProviderCacheProxy } from './decorators/cache.decorator';
         return new WeatherProviderCacheProxy(
           chain,
           redis,
+          MetricsService,
           parseInt(configService.get('CACHE_WEATHER_TTL')),
           configService.get('CACHE_ENABLED') === 'true',
         );
@@ -48,6 +53,7 @@ import { WeatherProviderCacheProxy } from './decorators/cache.decorator';
       inject: [
         WeatherApiProvider,
         OpenMeteoWeatherProvider,
+        MetricsService,
         'REDIS_CLIENT',
         ConfigService,
       ],

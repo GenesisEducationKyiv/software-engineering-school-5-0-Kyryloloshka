@@ -10,7 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "cross-env NODE_ENV=development dotenv -e .env -- nest start --watch",
-    "start:test": "dotenv -e .env.test.local -- nest start --watch",
+    "start:test": "cross-env NODE_ENV=test dotenv -e .env.test.local -- nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "typeorm": "typeorm-ts-node-commonjs",
