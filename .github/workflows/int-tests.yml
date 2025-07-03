@@ -26,7 +26,7 @@ jobs:
         run: cp .env.example .env
 
       - name: Copy local env file
-        run: cp .env.example .env.test.local
+        run: cp .env.test.example .env.test.local
 
       - name: Run tests
         run: pnpm test:int

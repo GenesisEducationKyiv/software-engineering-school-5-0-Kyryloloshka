@@ -19,6 +19,7 @@ import { envValidationSchema } from './config/env.validation';
     }),
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({
+      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test.local' : '.env',
       isGlobal: true,
       validationSchema: envValidationSchema,
     }),

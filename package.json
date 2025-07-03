@@ -16,7 +16,7 @@
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate src/migrations/InitMigration -d src/data-source.ts",
     "migration:run": "npm run typeorm -- migration:run -d src/data-source.ts",
-    "migration:run:test": "dotenv -e .env.test.local -- npm run typeorm -- migration:run -d src/data-source.ts",
+    "migration:run:test": "cross-env NODE_ENV=test dotenv -e .env.test.local -- npm run typeorm -- migration:run -d src/data-source.ts",
     "migration:run:prod": "dotenv -e .env -- npm run typeorm -- migration:run -d dist/data-source.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "test": "cross-env NODE_ENV=test dotenv -e .env.test.local -- jest --config jest.config.ts",
