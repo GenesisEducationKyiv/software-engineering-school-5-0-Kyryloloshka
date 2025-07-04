@@ -1,9 +1,9 @@
-name: Test (Integration & E2E)
+name: Test (unit Tests)
 
 on:
   [push, pull_request]
 jobs:
-  test:
+  unit-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

@@ -15,16 +15,6 @@ services:
       - pgdata:/var/lib/postgresql/data
     env_file:
       - .env
-  postgres-test:
-    image: postgres:15
-    container_name: pg-weather-test
-    restart: always
-    ports:
-      - '5432:5432'
-    environment:
-      POSTGRES_USER: postgres-test
-      POSTGRES_PASSWORD: postgres-test
-      POSTGRES_DB: test-db
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin-weather
@@ -38,6 +28,11 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
   api:
     build:
       context: .
