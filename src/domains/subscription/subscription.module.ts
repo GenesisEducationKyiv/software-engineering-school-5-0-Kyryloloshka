@@ -7,6 +7,7 @@ import { EmailService } from '../email/email.service';
 import { WeatherService } from 'src/domains/weather/weather.service';
 import { HttpModule } from '@nestjs/axios';
 import { WeatherModule } from '../weather/weather.module';
+import { SubscriptionRepository } from './subscription.repository';
 
 @Module({
   imports: [
@@ -14,7 +15,12 @@ import { WeatherModule } from '../weather/weather.module';
     HttpModule,
     WeatherModule,
   ],
-  providers: [SubscriptionService, EmailService, WeatherService],
+  providers: [
+    SubscriptionService,
+    EmailService,
+    WeatherService,
+    SubscriptionRepository,
+  ],
   controllers: [SubscriptionController],
   exports: [SubscriptionService],
 })

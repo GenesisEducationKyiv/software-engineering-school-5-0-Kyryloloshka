@@ -39,11 +39,13 @@ describe('SubscriptionService Int', () => {
     service = moduleRef.get(SubscriptionService);
     server.listen();
   });
+
   beforeEach(async () => {
     await dataSource.query(
       'TRUNCATE TABLE "subscription" RESTART IDENTITY CASCADE;',
     );
   });
+
   afterEach(() => server.resetHandlers());
 
   afterAll(async () => {

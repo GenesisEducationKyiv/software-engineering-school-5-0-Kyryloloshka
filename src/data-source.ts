@@ -5,7 +5,7 @@ dotenv.config({
   path: process.env.NODE_ENV === 'test' ? '.env.test.local' : '.env',
 });
 
-const config =
+export const dbConfig =
   process.env.NODE_ENV === 'test'
     ? {
         type: 'postgres',
@@ -28,4 +28,4 @@ const config =
         migrations: ['src/migrations/*.ts'],
       };
 
-export default new DataSource(config as DataSourceOptions);
+export default new DataSource(dbConfig as DataSourceOptions);

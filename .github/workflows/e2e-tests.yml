@@ -1,9 +1,9 @@
-name: Test (Integration Tests)
+name: Test (E2E Tests)
 
 on:
   [push, pull_request]
 jobs:
-  int-test:
+  e2e-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -26,5 +26,5 @@ jobs:
         run: cp .env.test.example .env.test.local
 
       - name: Run tests
-        run: pnpm test:int
+        run: pnpm test:e2e
 

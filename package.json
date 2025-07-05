@@ -24,12 +24,15 @@
     "test:cov": "jest --coverage --config jest.config.ts",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --config jest.config.ts",
     "test:e2e": "npx playwright test",
+    "db:drop:test": "cross-env NODE_ENV=test dotenv -e .env.test.local -- ts-node -r tsconfig-paths/register ./src/common/scripts/clean-db.ts",
+    "db:reset:test": "pnpm db:restart:test && pnpm db:drop:test && pnpm migration:run:test",
     "db:restart": "docker compose down && docker compose up -d && sleep 1",
     "db:restart:test": "docker compose -f docker-compose.test.yml down && docker compose -f docker-compose.test.yml up -d && sleep 1",
     "pretest:int": "pnpm db:restart:test && pnpm migration:run:test",
-    "test:int": "cross-env NODE_ENV=test dotenv -e .env.test.local -- jest -i --no-cache --config jest-int.ts --detectOpenHandles --forceExit",
+    "test:int": "pnpm db:reset:test && cross-env NODE_ENV=test dotenv -e .env.test.local -- jest -i --no-cache --config jest-int.ts --detectOpenHandles --forceExit",
     "test:int:watch": "cross-env NODE_ENV=test dotenv -e .env.test.local -- jest -i --no-cache --watch --config jest-int.ts",
-    "test:pw:e2e": "dotenv -e .env.test.local -- nest start --watch"
+    "test:arch": "jest --config jest-arch.ts",
+    "test:arch:watch": "jest --watch --config jest-arch.ts"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",
