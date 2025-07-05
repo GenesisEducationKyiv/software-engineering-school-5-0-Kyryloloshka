@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
 import { DataSource } from 'typeorm';
 import { SubscriptionService } from '../../subscription.service';
-import { EmailService } from 'src/domains/email/email.service';
+import { EmailService } from 'src/modules/email/email.service';
 import { CreateSubscriptionDto } from '../../dto/create-subscription.dto';
 import { Subscription } from '../../entities/subscription.entity';
 import { INestApplication } from '@nestjs/common';

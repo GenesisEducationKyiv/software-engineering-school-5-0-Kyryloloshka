@@ -8,12 +8,13 @@ import { Subscription } from './entities/subscription.entity';
 import { EmailService } from '../email/email.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { Frequency } from 'src/common/types/frequency';
-import { WeatherService } from 'src/domains/weather/weather.service';
+import { WeatherService } from 'src/modules/weather/weather.service';
 import { generateToken } from 'src/common/generators/token.generator';
 import { SubscriptionRepository } from './subscription.repository';
+import { ISubscriptionService } from './interfaces/subscription-service.interface';
 
 @Injectable()
-export class SubscriptionService {
+export class SubscriptionService implements ISubscriptionService {
   constructor(
     private readonly emailService: EmailService,
     private readonly weatherService: WeatherService,

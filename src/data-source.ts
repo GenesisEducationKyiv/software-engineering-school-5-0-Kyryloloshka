@@ -1,4 +1,4 @@
-import { Subscription } from './domains/subscription/entities/subscription.entity';
+import { Subscription } from './modules/subscription/entities/subscription.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import * as dotenv from 'dotenv';
 dotenv.config({
