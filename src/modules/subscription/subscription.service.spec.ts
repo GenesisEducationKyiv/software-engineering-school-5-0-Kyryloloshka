@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SubscriptionService } from './subscription.service';
 import { EmailService } from '../email/email.service';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Subscription } from './entities/subscription.entity';
+import { SubscriptionRepository } from './subscription.repository';
 import { WeatherService } from '../weather/weather.service';
 
 const repoMock = () => ({
-  findOne: jest.fn(),
+  findOneByEmail: jest.fn(),
+  findOneByToken: jest.fn(),
+  createAndSave: jest.fn(),
   save: jest.fn(),
-  find: jest.fn(),
-  create: jest.fn(),
   remove: jest.fn(),
+  findConfirmedByFrequency: jest.fn(),
 });
 const emailMock = () => ({
   sendConfirmationEmail: jest.fn(),
@@ -30,14 +30,14 @@ describe('SubscriptionService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SubscriptionService,
-        { provide: getRepositoryToken(Subscription), useFactory: repoMock },
+        { provide: SubscriptionRepository, useFactory: repoMock },
         { provide: EmailService, useFactory: emailMock },
         { provide: WeatherService, useValue: weatherServiceMock },
       ],
     }).compile();
 
     service = module.get<SubscriptionService>(SubscriptionService);
-    repo = module.get(getRepositoryToken(Subscription));
+    repo = module.get(SubscriptionRepository);
     email = module.get(EmailService);
     weather = module.get(WeatherService);
     jest.clearAllMocks();
@@ -49,7 +49,7 @@ describe('SubscriptionService', () => {
 
   describe('subscribe', () => {
     it('should throw ConflictException if email already subscribed', async () => {
-      repo.findOne.mockResolvedValueOnce({ id: 1 });
+      repo.findOneByEmail.mockResolvedValueOnce({ id: 1 });
       await expect(
         service.subscribe({
           email: 'test@mail.com',
@@ -60,7 +60,7 @@ describe('SubscriptionService', () => {
     });
 
     it('should throw BadRequestException if weather is invalid', async () => {
-      repo.findOne.mockResolvedValueOnce(null);
+      repo.findOneByEmail.mockResolvedValueOnce(null);
       weather.getWeather.mockResolvedValueOnce(null);
       await expect(
         service.subscribe({
@@ -72,10 +72,9 @@ describe('SubscriptionService', () => {
     });
 
     it('should save subscription and send confirmation email', async () => {
-      repo.findOne.mockResolvedValueOnce(null);
+      repo.findOneByEmail.mockResolvedValueOnce(null);
       weather.getWeather.mockResolvedValueOnce({ temperature: 20 });
-      repo.create.mockImplementation((dto) => dto);
-      repo.save.mockResolvedValueOnce({});
+      repo.createAndSave.mockResolvedValueOnce({ token: 'sometoken' });
       email.sendConfirmationEmail.mockResolvedValueOnce(undefined);
 
       const { token } = await service.subscribe({
@@ -84,7 +83,7 @@ describe('SubscriptionService', () => {
         frequency: 'daily',
       });
 
-      expect(repo.save).toHaveBeenCalled();
+      expect(repo.createAndSave).toHaveBeenCalled();
       expect(email.sendConfirmationEmail).toHaveBeenCalledWith(
         'test@mail.com',
         expect.any(String),
@@ -95,7 +94,7 @@ describe('SubscriptionService', () => {
 
   describe('confirmSubscription', () => {
     it('should throw NotFoundException if token is invalid', async () => {
-      repo.findOne.mockResolvedValueOnce(null);
+      repo.findOneByToken.mockResolvedValueOnce(null);
       await expect(
         service.confirmSubscription('invalid-token'),
       ).rejects.toThrow('Invalid or expired token');
@@ -103,7 +102,7 @@ describe('SubscriptionService', () => {
 
     it('should confirm subscription', async () => {
       const subscription = { confirmed: false };
-      repo.findOne.mockResolvedValueOnce(subscription);
+      repo.findOneByToken.mockResolvedValueOnce(subscription);
       repo.save.mockResolvedValueOnce({});
       await service.confirmSubscription('valid-token');
       expect(subscription.confirmed).toBe(true);
@@ -113,7 +112,7 @@ describe('SubscriptionService', () => {
 
   describe('unsubscribe', () => {
     it('should throw NotFoundException if token is invalid', async () => {
-      repo.findOne.mockResolvedValueOnce(null);
+      repo.findOneByToken.mockResolvedValueOnce(null);
       await expect(service.unsubscribe('bad-token')).rejects.toThrow(
         'Subscription not found or invalid token',
       );
@@ -121,7 +120,7 @@ describe('SubscriptionService', () => {
 
     it('should remove subscription', async () => {
       const subscription = { id: 1 };
-      repo.findOne.mockResolvedValueOnce(subscription);
+      repo.findOneByToken.mockResolvedValueOnce(subscription);
       repo.remove = jest.fn().mockResolvedValueOnce({});
       await service.unsubscribe('good-token');
       expect(repo.remove).toHaveBeenCalledWith(subscription);
@@ -130,23 +129,19 @@ describe('SubscriptionService', () => {
 
   describe('findConfirmedByFrequency', () => {
     it('should return confirmed subscriptions by frequency', async () => {
-      repo.find.mockResolvedValueOnce([
+      repo.findConfirmedByFrequency.mockResolvedValueOnce([
         { id: 1, confirmed: true, frequency: 'daily' },
       ]);
       const result = await service.findConfirmedByFrequency('daily' as any);
       expect(result).toEqual([{ id: 1, confirmed: true, frequency: 'daily' }]);
-      expect(repo.find).toHaveBeenCalledWith({
-        where: { confirmed: true, frequency: 'daily' },
-      });
+      expect(repo.findConfirmedByFrequency).toHaveBeenCalledWith('daily');
     });
 
     it('should return empty array if no subscriptions found', async () => {
-      repo.find.mockResolvedValueOnce([]);
+      repo.findConfirmedByFrequency.mockResolvedValueOnce([]);
       const result = await service.findConfirmedByFrequency('weekly' as any);
       expect(result).toEqual([]);
-      expect(repo.find).toHaveBeenCalledWith({
-        where: { confirmed: true, frequency: 'weekly' },
-      });
+      expect(repo.findConfirmedByFrequency).toHaveBeenCalledWith('weekly');
     });
   });
 
@@ -154,7 +149,7 @@ describe('SubscriptionService', () => {
 
   describe('subscribe', () => {
     it('should throw BadRequestException if weather.temperature is missing', async () => {
-      repo.findOne.mockResolvedValueOnce(null);
+      repo.findOneByEmail.mockResolvedValueOnce(null);
       weather.getWeather.mockResolvedValueOnce({});
       await expect(
         service.subscribe({
@@ -168,7 +163,7 @@ describe('SubscriptionService', () => {
 
   describe('confirmSubscription', () => {
     it('should not call save if subscription not found', async () => {
-      repo.findOne.mockResolvedValueOnce(null);
+      repo.findOneByToken.mockResolvedValueOnce(null);
       repo.save = jest.fn();
       await expect(service.confirmSubscription('bad-token')).rejects.toThrow(
         'Invalid or expired token',
@@ -178,7 +173,7 @@ describe('SubscriptionService', () => {
 
     it('should set confirmed to true and save', async () => {
       const subscription = { confirmed: false };
-      repo.findOne.mockResolvedValueOnce(subscription);
+      repo.findOneByToken.mockResolvedValueOnce(subscription);
       repo.save.mockResolvedValueOnce({});
       await service.confirmSubscription('token');
       expect(subscription.confirmed).toBe(true);

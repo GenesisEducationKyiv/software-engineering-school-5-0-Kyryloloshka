@@ -4,9 +4,10 @@ import { SubscriptionService } from '../subscription/subscription.service';
 import { WeatherService } from '../weather/weather.service';
 import { EmailService } from '../email/email.service';
 import { Frequency } from 'src/common/types/frequency';
+import { ISchedulerService } from './interfaces/scheduler-service.interface';
 
 @Injectable()
-export class SchedulerService {
+export class SchedulerService implements ISchedulerService {
   private readonly logger: Logger = new Logger(SchedulerService.name);
 
   constructor(
@@ -25,7 +26,7 @@ export class SchedulerService {
     await this.processByFrequency('daily');
   }
 
-  private async processByFrequency(frequency: Frequency) {
+  private async processByFrequency(frequency: Frequency): Promise<void> {
     const subscriptions =
       await this.subscriptionService.findConfirmedByFrequency(frequency);
 
