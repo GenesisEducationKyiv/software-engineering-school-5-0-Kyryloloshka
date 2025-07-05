@@ -21,6 +21,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        
+      - name: Install Playwright
+        run: pnpm exec playwright install
 
       - name: Copy local env file
         run: cp .env.test.example .env.test.local
