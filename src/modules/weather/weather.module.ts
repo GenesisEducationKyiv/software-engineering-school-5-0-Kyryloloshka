@@ -7,7 +7,7 @@ import { WeatherProviderChain } from './providers/weather-provider-chain';
 import { OpenMeteoWeatherProvider } from './providers/open-meteo-provider';
 import { WeatherApiProvider } from './providers/weather-api-provider';
 import Redis from 'ioredis';
-import { WeatherProviderCacheProxy } from './proxy/cache.proxy';
+import { WeatherProviderCacheDecorator } from './decorator/cache.decorator';
 import { MetricsService } from './metrics/metrics.service';
 import { MetricsController } from './metrics/metrics.controller';
 import { MetricsModule } from './metrics/metrics.module';
@@ -42,7 +42,7 @@ import { MetricsModule } from './metrics/metrics.module';
           weatherApiProvider,
           openMeteoWeatherProvider,
         ]);
-        return new WeatherProviderCacheProxy(
+        return new WeatherProviderCacheDecorator(
           chain,
           redis,
           MetricsService,

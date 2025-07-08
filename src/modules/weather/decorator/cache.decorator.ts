@@ -4,7 +4,7 @@ import { WeatherResponse } from 'src/common/types/weather';
 import Redis from 'ioredis';
 import { MetricsService } from '../metrics/metrics.service';
 
-export class WeatherProviderCacheProxy implements IWeatherProvider {
+export class WeatherProviderCacheDecorator implements IWeatherProvider {
   constructor(
     private readonly provider: IWeatherProvider,
     private readonly redis: Redis,
