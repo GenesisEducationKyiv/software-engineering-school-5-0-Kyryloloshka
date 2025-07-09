@@ -82,6 +82,8 @@ flowchart TD
 | Migration | Typeorm Migration CLI | 
 | Testing | Jest | 
 | Containerization | Docker + Docker Compose |
+| Caching | Redis |
+| Testing Framework | Jest |
 
 ---
 
