@@ -11,14 +11,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { LogWeatherProvider } from '../decorator/log-weather-provider.decorator';
 
 @Injectable()
 export class OpenMeteoWeatherProvider implements IWeatherProvider {
+  public readonly providerName = 'OpenMeteo';
+
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {}
 
+  @LogWeatherProvider()
   private async getCoordinates(
     city: string,
   ): Promise<{ latitude: number; longitude: number }> {
@@ -48,6 +52,7 @@ export class OpenMeteoWeatherProvider implements IWeatherProvider {
     };
   }
 
+  @LogWeatherProvider()
   async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {
     const baseUrl = this.configService.get<string>('OPENMETEO_BASE_API_URL');
 

@@ -3,6 +3,8 @@ import { IWeatherProvider } from '../interfaces/IWeatherProvider';
 import { WeatherResponse } from 'src/common/types/weather';
 
 export class WeatherProviderChain implements IWeatherProvider {
+  public readonly providerName = 'WeatherProviderChain';
+
   constructor(private providers: IWeatherProvider[]) {}
 
   async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {

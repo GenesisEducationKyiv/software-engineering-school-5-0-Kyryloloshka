@@ -12,6 +12,7 @@ import { WeatherService } from 'src/modules/weather/weather.service';
 import { generateToken } from 'src/common/generators/token.generator';
 import { SubscriptionRepository } from './subscription.repository';
 import { ISubscriptionService } from './interfaces/subscription-service.interface';
+import { LogSubscription } from './decorators/log-subscription.decorator';
 
 @Injectable()
 export class SubscriptionService implements ISubscriptionService {
@@ -21,6 +22,7 @@ export class SubscriptionService implements ISubscriptionService {
     private readonly subscriptionRepo: SubscriptionRepository,
   ) {}
 
+  @LogSubscription()
   async subscribe(dto: CreateSubscriptionDto): Promise<{ token: string }> {
     const existingSubscription = await this.subscriptionRepo.findOneByEmail(
       dto.email,
@@ -48,6 +50,7 @@ export class SubscriptionService implements ISubscriptionService {
     return { token };
   }
 
+  @LogSubscription()
   async confirmSubscription(token: string): Promise<void> {
     const subscription = await this.subscriptionRepo.findOneByToken(token);
 
@@ -59,6 +62,7 @@ export class SubscriptionService implements ISubscriptionService {
     await this.subscriptionRepo.save(subscription);
   }
 
+  @LogSubscription()
   async unsubscribe(token: string): Promise<void> {
     const subscription = await this.subscriptionRepo.findOneByToken(token);
 

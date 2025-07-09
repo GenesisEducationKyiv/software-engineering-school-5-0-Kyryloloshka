@@ -9,6 +9,7 @@ export class WeatherService {
     @Inject('IWeatherProvider')
     private readonly weatherProvider: IWeatherProvider,
   ) {}
+
   async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {
     return this.weatherProvider.getWeather({ city });
   }

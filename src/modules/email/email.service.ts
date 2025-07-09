@@ -1,14 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import Handlebars from 'handlebars';
 import { createTransport } from 'nodemailer';
 import path from 'path';
 import { WeatherResponse } from 'src/common/types/weather';
 import { promises as fs } from 'fs';
+import { LogSendEmail } from './decorators/log-send-email.decorator';
+import { IEmailService } from './interfaces/email-service.interface';
 
 @Injectable()
-export class EmailService {
-  private readonly logger = new Logger(EmailService.name);
-
+export class EmailService implements IEmailService {
   private transporter = createTransport({
     host: process.env.EMAIL_HOST,
     port: parseInt(process.env.EMAIL_PORT),
@@ -34,6 +34,7 @@ export class EmailService {
     return template(context);
   }
 
+  @LogSendEmail()
   async sendConfirmationEmail(email: string, token: string): Promise<void> {
     const confirmUrl = `${process.env.APP_URL}/confirm.html?token=${token}`;
     const html = await this.compileTemplate('confirm', { confirmUrl });
@@ -45,15 +46,10 @@ export class EmailService {
       html,
     };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Confirmation email sent to ${email}`);
-    } catch (error) {
-      this.logger.error(`Failed to send email to ${email}`, error);
-      throw new Error('Failed to send confirmation email');
-    }
+    await this.transporter.sendMail(mailOptions);
   }
 
+  @LogSendEmail()
   async sendWeatherUpdate({
     email,
     city,
@@ -81,12 +77,6 @@ export class EmailService {
       html,
     };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Confirmation email sent to ${email}`);
-    } catch (error) {
-      this.logger.error(`Failed to send email to ${email}`, error);
-      throw new Error('Failed to send confirmation email');
-    }
+    await this.transporter.sendMail(mailOptions);
   }
 }

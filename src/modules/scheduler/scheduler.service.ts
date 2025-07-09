@@ -5,6 +5,9 @@ import { WeatherService } from '../weather/weather.service';
 import { EmailService } from '../email/email.service';
 import { Frequency } from 'src/common/types/frequency';
 import { ISchedulerService } from './interfaces/scheduler-service.interface';
+import { Subscription } from '../subscription/entities/subscription.entity';
+import { LoggedError } from 'src/common/errors/logged.error';
+import { LogSendUpdate } from './decorators/log-send-update.decorator';
 
 @Injectable()
 export class SchedulerService implements ISchedulerService {
@@ -30,37 +33,34 @@ export class SchedulerService implements ISchedulerService {
     const subscriptions =
       await this.subscriptionService.findConfirmedByFrequency(frequency);
 
-    if (subscriptions.length === 0) return;
-
     for (const subscription of subscriptions) {
-      try {
-        const weather = await this.weatherService.getWeather({
-          city: subscription.city,
-        });
-
-        if (!weather) {
-          this.logger.warn(`No weather data for city: ${subscription.city}`);
-          continue;
-        }
-
-        await this.emailService.sendWeatherUpdate({
-          email: subscription.email,
-          token: subscription.token,
-          city: subscription.city,
-          weather,
-        });
-
-        this.logger.log(
-          `Weather update sent to ${subscription.email} (${subscription.city})`,
-        );
-      } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
-        this.logger.error(
-          `Failed to send weather to ${subscription.email} (${subscription.city}): ${errorMessage}`,
-          error as any,
-        );
-      }
+      this.sendWeatherUpdate(subscription);
     }
+  }
+
+  @LogSendUpdate()
+  private async sendWeatherUpdate(subscription: Subscription) {
+    const weather = await this.weatherService.getWeather({
+      city: subscription.city,
+    });
+
+    if (!weather) {
+      throw new LoggedError(
+        'warn',
+        `No weather data for city: ${subscription.city}`,
+      );
+    }
+
+    await this.emailService.sendWeatherUpdate({
+      email: subscription.email,
+      token: subscription.token,
+      city: subscription.city,
+      weather,
+    });
+
+    throw new LoggedError(
+      'log',
+      `Weather update sent to ${subscription.email} (${subscription.city})`,
+    );
   }
 }

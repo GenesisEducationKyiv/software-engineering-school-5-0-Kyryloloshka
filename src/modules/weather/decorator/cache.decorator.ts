@@ -5,6 +5,8 @@ import Redis from 'ioredis';
 import { MetricsService } from '../metrics/metrics.service';
 
 export class WeatherProviderCacheDecorator implements IWeatherProvider {
+  public readonly providerName = 'WeatherProviderCacheDecorator';
+
   constructor(
     private readonly provider: IWeatherProvider,
     private readonly redis: Redis,

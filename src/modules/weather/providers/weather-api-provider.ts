@@ -11,14 +11,18 @@ import {
 import { AxiosError } from 'axios';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
+import { LogWeatherProvider } from '../decorator/log-weather-provider.decorator';
 
 @Injectable()
 export class WeatherApiProvider implements IWeatherProvider {
+  public readonly providerName = 'WeatherAPI';
+
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {}
 
+  @LogWeatherProvider()
   async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {
     const apiKey = this.configService.get<string>('WEATHER_API_KEY');
     if (!apiKey) {
