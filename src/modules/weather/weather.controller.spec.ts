@@ -1,22 +1,24 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { WeatherController } from './weather.controller';
-import { WeatherService } from './weather.service';
+import { IWeatherService } from './interfaces/weather-service.interface';
 
-describe('WeatherController (integration)', () => {
+describe('WeatherController', () => {
   let app: INestApplication;
   let controller: WeatherController;
-  let service: WeatherService;
+  let service: jest.Mocked<IWeatherService>;
+
+  const weatherServiceMock = (): jest.Mocked<IWeatherService> => ({
+    getWeather: jest.fn(),
+  });
 
   beforeEach(async () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
       controllers: [WeatherController],
       providers: [
         {
-          provide: WeatherService,
-          useValue: {
-            getWeather: jest.fn(),
-          },
+          provide: 'IWeatherService',
+          useFactory: weatherServiceMock,
         },
       ],
     }).compile();
@@ -28,7 +30,7 @@ describe('WeatherController (integration)', () => {
     await app.init();
 
     controller = moduleRef.get<WeatherController>(WeatherController);
-    service = moduleRef.get<WeatherService>(WeatherService);
+    service = moduleRef.get('IWeatherService');
   });
 
   afterEach(async () => {
@@ -38,7 +40,7 @@ describe('WeatherController (integration)', () => {
 
   it('should return weather data for valid city', async () => {
     const mockWeather = { temperature: 15, humidity: 50, description: 'Sunny' };
-    jest.spyOn(service, 'getWeather').mockResolvedValueOnce(mockWeather);
+    service.getWeather.mockResolvedValueOnce(mockWeather);
 
     const result = await controller.getWeather({ city: 'Kyiv' });
     expect(result).toEqual(mockWeather);
@@ -64,7 +66,7 @@ describe('WeatherController (integration)', () => {
   });
 
   it('should throw 404 if city not found', async () => {
-    jest.spyOn(service, 'getWeather').mockImplementationOnce(() => {
+    service.getWeather.mockImplementationOnce(() => {
       const error: any = new Error('City not found');
       error.status = 404;
       throw error;

@@ -1,5 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { WeatherService } from './weather.service';
+import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { GetWeatherDto } from './dto/get-weather.dto';
 import {
   ApiBadRequestResponse,
@@ -9,11 +8,15 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { IWeatherService } from './interfaces/weather-service.interface';
 
 @ApiTags('weather')
 @Controller('weather')
 export class WeatherController {
-  constructor(private readonly weatherService: WeatherService) {}
+  constructor(
+    @Inject('IWeatherService')
+    private readonly weatherService: IWeatherService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get current weather for a city' })

@@ -30,7 +30,7 @@ describe('architecture', () => {
       .matchingPattern('.controller');
     await expect(rule).toPassAsync();
   });
-  it('service files should not depend on controller files', async () => {
+  it('repository files should not depend on service and controller files', async () => {
     const rule = filesOfProject()
       .inFolder('src/modules')
       .matchingPattern('.repository')

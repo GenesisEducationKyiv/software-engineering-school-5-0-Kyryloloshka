@@ -1,10 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SubscriptionService } from './subscription.service';
-import { EmailService } from '../email/email.service';
-import { SubscriptionRepository } from './subscription.repository';
-import { WeatherService } from '../weather/weather.service';
+import { ISubscriptionRepository } from './interfaces/subscription-repository.interface';
+import { IEmailService } from '../email/interfaces/email-service.interface';
+import { IWeatherService } from '../weather/interfaces/weather-service.interface';
+import { Subscription } from './entities/subscription.entity';
+import { Frequency } from 'src/common/types/frequency';
+// Замість конкретних класів імпортуйте інтерфейси
 
-const repoMock = () => ({
+const repoMock = (): jest.Mocked<ISubscriptionRepository> => ({
   findOneByEmail: jest.fn(),
   findOneByToken: jest.fn(),
   createAndSave: jest.fn(),
@@ -12,34 +15,35 @@ const repoMock = () => ({
   remove: jest.fn(),
   findConfirmedByFrequency: jest.fn(),
 });
-const emailMock = () => ({
+const emailMock = (): jest.Mocked<IEmailService> => ({
   sendConfirmationEmail: jest.fn(),
+  sendWeatherUpdate: jest.fn(),
 });
 
-const weatherServiceMock = {
+const weatherServiceMock: jest.Mocked<IWeatherService> = {
   getWeather: jest.fn(),
 };
 
 describe('SubscriptionService', () => {
   let service: SubscriptionService;
-  let repo: ReturnType<typeof repoMock>;
-  let email: ReturnType<typeof emailMock>;
-  let weather: typeof weatherServiceMock;
+  let repo: jest.Mocked<ISubscriptionRepository>;
+  let email: jest.Mocked<IEmailService>;
+  let weather: jest.Mocked<IWeatherService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SubscriptionService,
-        { provide: SubscriptionRepository, useFactory: repoMock },
-        { provide: EmailService, useFactory: emailMock },
-        { provide: WeatherService, useValue: weatherServiceMock },
+        { provide: 'ISubscriptionRepository', useFactory: repoMock },
+        { provide: 'IEmailService', useFactory: emailMock },
+        { provide: 'IWeatherService', useValue: weatherServiceMock },
       ],
     }).compile();
 
     service = module.get<SubscriptionService>(SubscriptionService);
-    repo = module.get(SubscriptionRepository);
-    email = module.get(EmailService);
-    weather = module.get(WeatherService);
+    repo = module.get('ISubscriptionRepository');
+    email = module.get('IEmailService');
+    weather = module.get('IWeatherService');
     jest.clearAllMocks();
   });
 
@@ -49,7 +53,7 @@ describe('SubscriptionService', () => {
 
   describe('subscribe', () => {
     it('should throw ConflictException if email already subscribed', async () => {
-      repo.findOneByEmail.mockResolvedValueOnce({ id: 1 });
+      repo.findOneByEmail.mockResolvedValueOnce({ id: 1 } as any);
       await expect(
         service.subscribe({
           email: 'test@mail.com',
@@ -73,8 +77,8 @@ describe('SubscriptionService', () => {
 
     it('should save subscription and send confirmation email', async () => {
       repo.findOneByEmail.mockResolvedValueOnce(null);
-      weather.getWeather.mockResolvedValueOnce({ temperature: 20 });
-      repo.createAndSave.mockResolvedValueOnce({ token: 'sometoken' });
+      weather.getWeather.mockResolvedValueOnce({ temperature: 20 } as any);
+      repo.createAndSave.mockResolvedValueOnce({ token: 'sometoken' } as any);
       email.sendConfirmationEmail.mockResolvedValueOnce(undefined);
 
       const { token } = await service.subscribe({
@@ -101,9 +105,9 @@ describe('SubscriptionService', () => {
     });
 
     it('should confirm subscription', async () => {
-      const subscription = { confirmed: false };
+      const subscription = { confirmed: false } as Subscription;
       repo.findOneByToken.mockResolvedValueOnce(subscription);
-      repo.save.mockResolvedValueOnce({});
+      repo.save.mockResolvedValueOnce({} as any);
       await service.confirmSubscription('valid-token');
       expect(subscription.confirmed).toBe(true);
       expect(repo.save).toHaveBeenCalledWith(subscription);
@@ -120,7 +124,7 @@ describe('SubscriptionService', () => {
 
     it('should remove subscription', async () => {
       const subscription = { id: 1 };
-      repo.findOneByToken.mockResolvedValueOnce(subscription);
+      repo.findOneByToken.mockResolvedValueOnce(subscription as any);
       repo.remove = jest.fn().mockResolvedValueOnce({});
       await service.unsubscribe('good-token');
       expect(repo.remove).toHaveBeenCalledWith(subscription);
@@ -130,9 +134,11 @@ describe('SubscriptionService', () => {
   describe('findConfirmedByFrequency', () => {
     it('should return confirmed subscriptions by frequency', async () => {
       repo.findConfirmedByFrequency.mockResolvedValueOnce([
-        { id: 1, confirmed: true, frequency: 'daily' },
+        { id: 1, confirmed: true, frequency: 'daily' } as any,
       ]);
-      const result = await service.findConfirmedByFrequency('daily' as any);
+      const result = await service.findConfirmedByFrequency(
+        'daily' as Frequency,
+      );
       expect(result).toEqual([{ id: 1, confirmed: true, frequency: 'daily' }]);
       expect(repo.findConfirmedByFrequency).toHaveBeenCalledWith('daily');
     });
@@ -150,7 +156,7 @@ describe('SubscriptionService', () => {
   describe('subscribe', () => {
     it('should throw BadRequestException if weather.temperature is missing', async () => {
       repo.findOneByEmail.mockResolvedValueOnce(null);
-      weather.getWeather.mockResolvedValueOnce({});
+      weather.getWeather.mockResolvedValueOnce({} as any);
       await expect(
         service.subscribe({
           email: 'test2@mail.com',
@@ -172,9 +178,9 @@ describe('SubscriptionService', () => {
     });
 
     it('should set confirmed to true and save', async () => {
-      const subscription = { confirmed: false };
+      const subscription = { confirmed: false } as Subscription;
       repo.findOneByToken.mockResolvedValueOnce(subscription);
-      repo.save.mockResolvedValueOnce({});
+      repo.save.mockResolvedValueOnce({} as any);
       await service.confirmSubscription('token');
       expect(subscription.confirmed).toBe(true);
       expect(repo.save).toHaveBeenCalledWith(subscription);

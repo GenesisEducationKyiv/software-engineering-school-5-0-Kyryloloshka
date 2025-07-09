@@ -4,13 +4,16 @@ import {
   NotFoundException,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { IWeatherService } from './interfaces/weather-service.interface';
+import { IWeatherProvider } from './interfaces/IWeatherProvider';
 
 describe('WeatherService (integration)', () => {
-  let service: WeatherService;
-  let weatherProvider: { getWeather: jest.Mock };
+  let service: IWeatherService;
+  let weatherProvider: jest.Mocked<IWeatherProvider>;
 
   beforeEach(async () => {
     weatherProvider = {
+      providerName: 'MockWeatherProvider',
       getWeather: jest.fn(),
     };
 

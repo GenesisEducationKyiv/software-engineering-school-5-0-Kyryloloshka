@@ -1,22 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { SubscriptionService } from '../subscription/subscription.service';
-import { WeatherService } from '../weather/weather.service';
-import { EmailService } from '../email/email.service';
 import { Frequency } from 'src/common/types/frequency';
 import { ISchedulerService } from './interfaces/scheduler-service.interface';
 import { Subscription } from '../subscription/entities/subscription.entity';
 import { LoggedError } from 'src/common/errors/logged.error';
 import { LogSendUpdate } from './decorators/log-send-update.decorator';
+import { IWeatherService } from '../weather/interfaces/weather-service.interface';
+import { IEmailService } from '../email/interfaces/email-service.interface';
+import { ISubscriptionService } from '../subscription/interfaces/subscription-service.interface';
 
 @Injectable()
 export class SchedulerService implements ISchedulerService {
-  private readonly logger: Logger = new Logger(SchedulerService.name);
-
   constructor(
-    private readonly subscriptionService: SubscriptionService,
-    private readonly weatherService: WeatherService,
-    private readonly emailService: EmailService,
+    @Inject('ISubscriptionService')
+    private readonly subscriptionService: ISubscriptionService,
+    @Inject('IWeatherService')
+    private readonly weatherService: IWeatherService,
+    @Inject('IEmailService')
+    private readonly emailService: IEmailService,
   ) {}
 
   @Cron('0 * * * *')

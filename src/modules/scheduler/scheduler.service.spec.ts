@@ -1,36 +1,36 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SchedulerService } from './scheduler.service';
-import { SubscriptionService } from '../subscription/subscription.service';
-import { WeatherService } from '../weather/weather.service';
-import { EmailService } from '../email/email.service';
+import { ISubscriptionService } from '../subscription/interfaces/subscription-service.interface';
+import { IWeatherService } from '../weather/interfaces/weather-service.interface';
+import { IEmailService } from '../email/interfaces/email-service.interface';
 
 describe('SchedulerService', () => {
   let service: SchedulerService;
-  let subSvc: jest.Mocked<SubscriptionService>;
-  let weatherSvc: jest.Mocked<WeatherService>;
-  let emailSvc: jest.Mocked<EmailService>;
+  let subSvc: jest.Mocked<ISubscriptionService>;
+  let weatherSvc: jest.Mocked<IWeatherService>;
+  let emailSvc: jest.Mocked<IEmailService>;
 
-  const mockSubSvc = (): jest.Mocked<SubscriptionService> =>
+  const mockSubSvc = (): jest.Mocked<ISubscriptionService> =>
     ({ findConfirmedByFrequency: jest.fn() }) as any;
-  const mockWeatherSvc = (): jest.Mocked<WeatherService> =>
+  const mockWeatherSvc = (): jest.Mocked<IWeatherService> =>
     ({ getWeather: jest.fn() }) as any;
-  const mockEmailSvc = (): jest.Mocked<EmailService> =>
+  const mockEmailSvc = (): jest.Mocked<IEmailService> =>
     ({ sendWeatherUpdate: jest.fn() }) as any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SchedulerService,
-        { provide: SubscriptionService, useValue: mockSubSvc() },
-        { provide: WeatherService, useValue: mockWeatherSvc() },
-        { provide: EmailService, useValue: mockEmailSvc() },
+        { provide: 'ISubscriptionService', useFactory: mockSubSvc },
+        { provide: 'IWeatherService', useFactory: mockWeatherSvc },
+        { provide: 'IEmailService', useFactory: mockEmailSvc },
       ],
     }).compile();
 
     service = module.get(SchedulerService);
-    subSvc = module.get(SubscriptionService);
-    weatherSvc = module.get(WeatherService);
-    emailSvc = module.get(EmailService);
+    subSvc = module.get('ISubscriptionService');
+    weatherSvc = module.get('IWeatherService');
+    emailSvc = module.get('IEmailService');
   });
 
   it('should be defined', () => {

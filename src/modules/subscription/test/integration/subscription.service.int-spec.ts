@@ -1,42 +1,42 @@
 import { Test } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
 import { DataSource } from 'typeorm';
-import { SubscriptionService } from '../../subscription.service';
-import { EmailService } from 'src/modules/email/email.service';
 import { CreateSubscriptionDto } from '../../dto/create-subscription.dto';
 import { Subscription } from '../../entities/subscription.entity';
 import { INestApplication } from '@nestjs/common';
 import { server } from 'src/common/mock/server';
+import { IEmailService } from 'src/modules/email/interfaces/email-service.interface';
+import { ISubscriptionService } from '../../interfaces/subscription-service.interface';
 
 jest.mock('@nestjs-modules/mailer/dist/adapters/handlebars.adapter', () => ({
   HandlebarsAdapter: jest.fn(),
 }));
 
-class MockEmailService {
+class MockEmailService implements IEmailService {
   async sendConfirmationEmail() {
     return;
   }
-  async sendUnsubscribeEmail() {
+  async sendWeatherUpdate() {
     return;
   }
 }
 
 describe('SubscriptionService Int', () => {
   let dataSource: DataSource;
-  let service: SubscriptionService;
+  let service: ISubscriptionService;
   let app: INestApplication;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider(EmailService)
+      .overrideProvider('IEmailService')
       .useValue(new MockEmailService())
       .compile();
     app = moduleRef.createNestApplication();
     await app.init();
     dataSource = moduleRef.get(DataSource);
-    service = moduleRef.get(SubscriptionService);
+    service = moduleRef.get('ISubscriptionService');
     server.listen();
   });
 

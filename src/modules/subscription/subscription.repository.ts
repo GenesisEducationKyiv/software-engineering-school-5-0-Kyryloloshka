@@ -4,9 +4,10 @@ import { Repository } from 'typeorm';
 import { Subscription } from './entities/subscription.entity';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { Frequency } from 'src/common/types/frequency';
+import { ISubscriptionRepository } from './interfaces/subscription-repository.interface';
 
 @Injectable()
-export class SubscriptionRepository {
+export class SubscriptionRepository implements ISubscriptionRepository {
   constructor(
     @InjectRepository(Subscription)
     private readonly repo: Repository<Subscription>,

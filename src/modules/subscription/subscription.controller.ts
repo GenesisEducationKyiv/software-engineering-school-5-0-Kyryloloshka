@@ -1,5 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { SubscriptionService } from './subscription.service';
+import { Body, Controller, Get, Inject, Param, Post } from '@nestjs/common';
 import {
   ApiOperation,
   ApiParam,
@@ -11,10 +10,14 @@ import {
   ApiCreatedResponse,
 } from '@nestjs/swagger';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
+import { ISubscriptionService } from './interfaces/subscription-service.interface';
 
 @Controller()
 export class SubscriptionController {
-  constructor(private readonly subscriptionService: SubscriptionService) {}
+  constructor(
+    @Inject('ISubscriptionService')
+    private readonly subscriptionService: ISubscriptionService,
+  ) {}
 
   @Post('subscribe')
   @ApiOperation({ summary: 'Subscribe to weather updates' })

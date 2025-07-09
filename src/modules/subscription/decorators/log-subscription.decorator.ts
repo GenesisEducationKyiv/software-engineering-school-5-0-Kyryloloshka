@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { LoggedError } from 'src/common/errors/logged.error';
+import { ISubscriptionService } from '../interfaces/subscription-service.interface';
 
 export function LogSubscription() {
   return function (
@@ -7,42 +7,20 @@ export function LogSubscription() {
     propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
+    const logger = new Logger(target.constructor.name);
     const originalMethod = descriptor.value;
-    descriptor.value = async function (...args: any[]) {
-      const logger = new Logger(target.constructor.name);
+    descriptor.value = async function (
+      this: ISubscriptionService,
+      ...args: any[]
+    ) {
       try {
-        return await originalMethod.apply(this, args);
+        logger.log(`Calling ${propertyKey} with args:`, args);
+        const result = await originalMethod.apply(this, args);
+        return result;
       } catch (error) {
-        if (error instanceof LoggedError) {
-          switch (error.type) {
-            case 'log':
-              logger.log(
-                `Called ${propertyKey} with args: ${JSON.stringify(args)}: ${error.message}`,
-              );
-              break;
-            case 'warn':
-              logger.warn(
-                `Called ${propertyKey} with args: ${JSON.stringify(args)}: ${error.message}`,
-              );
-              break;
-            case 'error':
-              logger.error(
-                `Called ${propertyKey} with args: ${JSON.stringify(args)}: ${error.message}`,
-                error,
-              );
-              break;
-            default:
-              logger.error(
-                `Unknown log type in ${propertyKey} with params ${JSON.stringify(args)}: ${error.message}`,
-                error,
-              );
-          }
-        } else {
-          logger.error(
-            `Called ${propertyKey} with args: ${JSON.stringify(args)}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            error,
-          );
-        }
+        logger.error(
+          `[${propertyKey}] with args: ${JSON.stringify(args)}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        );
         throw error;
       }
     };

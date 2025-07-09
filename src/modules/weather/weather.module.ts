@@ -58,7 +58,11 @@ import { MetricsModule } from './metrics/metrics.module';
         ConfigService,
       ],
     },
+    {
+      provide: 'IWeatherService',
+      useClass: WeatherService,
+    },
   ],
-  exports: [WeatherService, 'IWeatherProvider'],
+  exports: ['IWeatherService', 'IWeatherProvider'],
 })
 export class WeatherModule {}

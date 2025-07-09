@@ -1,16 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SubscriptionController } from './subscription.controller';
-import { SubscriptionService } from './subscription.service';
-import { EmailService } from '../email/email.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Subscription } from './entities/subscription.entity';
 
 const repoMock = () => ({
   findOne: jest.fn(),
   save: jest.fn(),
-});
-const emailMock = () => ({
-  sendConfirmation: jest.fn(),
 });
 const serviceMock = () => ({
   subscribe: jest.fn(),
@@ -26,14 +21,13 @@ describe('SubscriptionController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SubscriptionController],
       providers: [
-        { provide: SubscriptionService, useFactory: serviceMock },
+        { provide: 'ISubscriptionService', useFactory: serviceMock },
         { provide: getRepositoryToken(Subscription), useFactory: repoMock },
-        { provide: EmailService, useFactory: emailMock },
       ],
     }).compile();
 
     controller = module.get<SubscriptionController>(SubscriptionController);
-    service = module.get(SubscriptionService);
+    service = module.get('ISubscriptionService');
   });
 
   it('should be defined', () => {

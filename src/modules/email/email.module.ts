@@ -29,7 +29,12 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
       },
     }),
   ],
-  providers: [EmailService],
-  exports: [EmailService],
+  providers: [
+    {
+      provide: 'IEmailService',
+      useClass: EmailService,
+    },
+  ],
+  exports: ['IEmailService'],
 })
 export class EmailModule {}
