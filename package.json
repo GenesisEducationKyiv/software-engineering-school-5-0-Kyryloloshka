@@ -28,7 +28,8 @@
     "db:reset:test": "pnpm db:restart:test && pnpm db:drop:test && pnpm migration:run:test",
     "db:restart": "docker compose down && docker compose up -d && sleep 1",
     "db:restart:test": "docker compose -f docker-compose.test.yml down && docker compose -f docker-compose.test.yml up -d && sleep 1",
-    "test:int": "pnpm db:reset:test && cross-env NODE_ENV=test dotenv -e .env.test.local -- jest -i --no-cache --config jest-int.ts --detectOpenHandles --forceExit",
+    "test:int:ci": "cross-env NODE_ENV=test dotenv -e .env.test.local -- jest -i --no-cache --config jest-int.ts --detectOpenHandles --forceExit",
+    "test:int": "pnpm db:reset:test && pnpm test:int:ci",
     "test:int:watch": "cross-env NODE_ENV=test dotenv -e .env.test.local -- jest -i --no-cache --watch --config jest-int.ts",
     "test:arch": "jest --config jest-arch.ts",
     "test:arch:watch": "jest --watch --config jest-arch.ts"
