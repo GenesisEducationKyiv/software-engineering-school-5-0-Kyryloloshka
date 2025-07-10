@@ -11,6 +11,7 @@ export default {
   testEnvironment: 'node',
 
   moduleNameMapper: {
-    '^src/(.*)$': '<rootDir>/src/$1',
+    '^@lib/common/(.*)$': '<rootDir>/libs/common/src/$1',
+    '^@lib/common$': '<rootDir>/libs/common/src',
   },
 };

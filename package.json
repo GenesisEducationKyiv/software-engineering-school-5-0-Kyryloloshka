@@ -7,28 +7,27 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
     "start:dev": "cross-env NODE_ENV=development dotenv -e .env -- nest start --watch",
     "start:test": "cross-env NODE_ENV=test dotenv -e .env.test.local -- nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/apps/genesis-test-assignment/main",
     "typeorm": "typeorm-ts-node-commonjs",
-    "migration:generate": "npm run typeorm -- migration:generate src/migrations/InitMigration -d src/data-source.ts",
-    "migration:run": "npm run typeorm -- migration:run -d src/data-source.ts",
-    "migration:run:test": "cross-env NODE_ENV=test dotenv -e .env.test.local -- npm run typeorm -- migration:run -d src/data-source.ts",
+    "migration:generate": "npm run typeorm -- migration:generate src/migrations/InitMigration -d apps/subscription/src/data-source.ts",
+    "migration:run": "npm run typeorm -- migration:run -d apps/subscription/src/data-source.ts",
+    "migration:run:test": "cross-env NODE_ENV=test dotenv -e .env.test.local -- npm run typeorm -- migration:run -d apps/subscription/src/data-source.ts",
     "migration:run:prod": "dotenv -e .env -- npm run typeorm -- migration:run -d dist/data-source.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "test": "cross-env NODE_ENV=test dotenv -e .env.test.local -- jest --config jest.config.ts",
     "test:watch": "jest --watch --config jest.config.ts",
     "test:cov": "jest --coverage --config jest.config.ts",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --config jest.config.ts",
-    "test:e2e": "npx playwright test",
-    "db:drop:test": "cross-env NODE_ENV=test dotenv -e .env.test.local -- ts-node -r tsconfig-paths/register ./src/common/scripts/clean-db.ts",
+    "test:e2e": "npx playwright apps/genesis-test-assignment/test",
+    "db:drop:test": "cross-env NODE_ENV=test dotenv -e .env.test.local -- ts-node -r tsconfig-paths/register apps/subscription/src/scripts/clean-db.ts",
     "db:reset:test": "pnpm db:restart:test && pnpm db:drop:test && pnpm migration:run:test",
     "db:restart": "docker compose down && docker compose up -d && sleep 1",
     "db:restart:test": "docker compose -f docker-compose.test.yml down && docker compose -f docker-compose.test.yml up -d && sleep 1",
-    "pretest:int": "pnpm db:restart:test && pnpm migration:run:test",
     "test:int": "pnpm db:reset:test && cross-env NODE_ENV=test dotenv -e .env.test.local -- jest -i --no-cache --config jest-int.ts --detectOpenHandles --forceExit",
     "test:int:watch": "cross-env NODE_ENV=test dotenv -e .env.test.local -- jest -i --no-cache --watch --config jest-int.ts",
     "test:arch": "jest --config jest-arch.ts",
@@ -40,6 +39,7 @@
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/microservices": "^11.1.3",
     "@nestjs/platform-express": "^11.1.1",
     "@nestjs/schedule": "^6.0.0",
     "@nestjs/serve-static": "^5.0.3",
@@ -49,6 +49,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "dotenv": "^16.5.0",
+    "express": "^5.1.0",
     "handlebars": "^4.7.8",
     "ioredis": "^5.6.1",
     "joi": "^17.13.3",
@@ -95,7 +96,7 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -103,7 +104,14 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/apps/",
+      "<rootDir>/libs/"
+    ],
+    "moduleNameMapper": {
+      "^@lib/common(|/.*)$": "<rootDir>/libs/common/src/$1"
+    }
   }
 }
