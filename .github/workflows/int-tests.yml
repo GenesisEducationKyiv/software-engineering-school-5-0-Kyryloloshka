@@ -22,9 +22,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Copy env file
-        run: cp .env.example .env
-
       - name: Copy local env file
         run: cp .env.test.example .env.test.local
 
