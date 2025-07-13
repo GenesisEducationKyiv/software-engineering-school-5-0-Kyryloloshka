@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ApiGatewayModule } from './api-gateway.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
@@ -24,6 +25,8 @@ async function bootstrap() {
       },
     }),
   );
+
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   const config = new DocumentBuilder()
     .setTitle('Weather Subscription API')

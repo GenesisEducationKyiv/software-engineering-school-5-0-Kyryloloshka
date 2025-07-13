@@ -13,7 +13,7 @@ import { WEATHER_PACKAGE_NAME } from '@lib/common';
         transport: Transport.GRPC,
         options: {
           package: WEATHER_PACKAGE_NAME,
-          protoPath: join(__dirname, '../../../proto/weather.proto'),
+          protoPath: join(process.cwd(), 'proto/weather.proto'),
           url: '0.0.0.0:5000',
         },
       },

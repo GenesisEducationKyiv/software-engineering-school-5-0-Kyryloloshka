@@ -29,7 +29,7 @@ export class SchedulerService implements ISchedulerService {
       this.weatherClient.getService<WeatherServiceClient>('WeatherService');
   }
 
-  @Cron('29 * * * *')
+  @Cron('0 * * * *')
   async processHourly(): Promise<void> {
     await this.processByFrequency('hourly');
   }

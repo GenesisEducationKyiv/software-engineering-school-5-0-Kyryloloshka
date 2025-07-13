@@ -11,11 +11,12 @@ async function bootstrap() {
       transport: Transport.GRPC,
       options: {
         package: WEATHER_PACKAGE_NAME,
-        protoPath: join(__dirname, '../../../proto/weather.proto'),
-        url: '0.0.0.0:5000',
+        protoPath: join(process.cwd(), 'proto/weather.proto'),
+        url: `0.0.0.0:5000`,
       },
     },
   );
+
   await app.listen();
 }
 bootstrap();

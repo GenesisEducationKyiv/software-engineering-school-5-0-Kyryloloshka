@@ -11,11 +11,12 @@ async function bootstrap() {
       transport: Transport.GRPC,
       options: {
         package: SUBSCRIPTION_PACKAGE_NAME,
-        protoPath: join(__dirname, '../../../proto/subscription.proto'),
-        url: '0.0.0.0:5001',
+        protoPath: join(process.cwd(), 'proto/subscription.proto'),
+        url: `0.0.0.0:5001`,
       },
     },
   );
+
   await app.listen();
 }
 bootstrap();

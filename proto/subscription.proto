@@ -26,3 +26,9 @@ message SubscribeResponse {
 message MessageResponse {
   string message = 1;
 }
+
+message SubscriptionError {
+  string code = 1;
+  string message = 2;
+  string details = 3;
+}

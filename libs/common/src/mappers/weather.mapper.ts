@@ -1,7 +1,8 @@
-import { InternalServerErrorException } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import { WeatherResponse } from '../types/weather/weather';
 import { mapToWeatherDescription } from './wmo-description.mapper';
 import { mapToDay } from './day.mapper';
+import { ErrorCodes } from '../types/errors';
 
 export const mapToWeatherResponse = (data: any): WeatherResponse => {
   if (
@@ -34,7 +35,7 @@ export const mapToWeatherResponse = (data: any): WeatherResponse => {
     };
   }
 
-  throw new InternalServerErrorException(
-    'Invalid weather data format received',
+  throw new RpcException(
+    `${ErrorCodes.WEATHER_PROVIDER_ERROR}: Invalid weather data format received`,
   );
 };

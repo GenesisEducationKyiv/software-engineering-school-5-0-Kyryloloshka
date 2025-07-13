@@ -5,6 +5,8 @@ import {
 } from '@lib/common';
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class WeatherService {
@@ -21,6 +23,13 @@ export class WeatherService {
   }
 
   async getWeather({ city }: GetWeatherDto): Promise<any> {
-    return this.weatherService.getWeather({ city });
+    try {
+      return await firstValueFrom(this.weatherService.getWeather({ city }));
+    } catch (error) {
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw new RpcException(error.message || 'Internal server error');
+    }
   }
 }

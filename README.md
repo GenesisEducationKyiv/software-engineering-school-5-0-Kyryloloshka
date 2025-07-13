@@ -2,6 +2,7 @@
 
 - [ Overview](#-overview)
 - [ Features](#-features)
+- [ Architecture](#-architecture)
 - [ Project Structure](#-project-structure)
 - [ Getting Started](#-getting-started)
   - [ Prerequisites](#-prerequisites-for-docker-build)
@@ -13,67 +14,133 @@
 
 ##  Overview
 
-### **Weather Forecast API** is a NestJS micro-service that:
+### **Weather Forecast Microservices** is a NestJS-based microservices system that:
 
-- fetches real-time weather data for any city (WeatherAPI.com integration);  
-- lets users subscribe for e-mail updates with *hourly* or *daily* frequency;
-- delivers scheduled weather digests via a background CRON worker;
-- is fully containerised (Docker + Docker Compose);
-- has a fully functioning swagger deployment -> [view deployment](https://genesis-test-assignment-production.up.railway.app/api/).
-- and a minimalist page to demonstrate the functionality -> [view deployment](https://genesis-test-assignment-production.up.railway.app/).
+- **API Gateway**: Single entry point for all client requests with routing and load balancing
+- **Weather Service**: Fetches real-time weather data from multiple providers (WeatherAPI.com, OpenMeteo)
+- **Subscription Service**: Manages user subscriptions and email delivery with scheduled updates
+- **Shared Infrastructure**: PostgreSQL database, Redis cache, and SMTP email service
+- **Fully containerized** with Docker + Docker Compose
+- **gRPC communication** between microservices for high performance
+- **Comprehensive testing** with Jest and Playwright
+- **Production deployment** available at [view deployment](https://genesis-test-assignment-production.up.railway.app/api/)
 
 ---
 
 ##  Features
 
-❯ ✉️  **Subscription workflow**  
+❯ 🌐 **API Gateway**  
+   — Single entry point for all requests  
+   — Request routing to microservices  
+   — Load balancing and rate limiting  
+   — Swagger documentation  
+
+❯ ✉️ **Subscription Workflow**  
    — `POST /subscribe` (form-data: *email*, *city*, *frequency*)  
-   — `GET  /confirm/{token}` → confirm subscription  
-   — `GET  /unsubscribe/{token}` → instant opt-out
+   — `GET  /confirm/{token}` → confirm subscription  
+   — `GET  /unsubscribe/{token}` → instant opt-out  
 
-❯ ☀️  **Weather endpoint**  
-   — `GET /weather?city=Kyiv` returns `{ temperature, humidity, description }`  
+❯ ☀️ **Weather Service**  
+   — `GET /weather?city=Kyiv` returns weather data  
+   — Multiple weather provider support  
+   — Intelligent caching with Redis  
+   — Provider fallback mechanism  
 
-❯ 🗓  **Scheduler**  
-   — CRON `0 * * * *`  → sends *hourly* e-mails  
-   — CRON `0 9 * * *`  → sends *daily* e-mails at 09:00 UTC+0  
-   — Batched by city: only one WeatherAPI call per unique location
+❯ 🗓 **Scheduler**  
+   — CRON `0 * * * *` → sends *hourly* emails  
+   — CRON `0 9 * * *` → sends *daily* emails at 09:00 UTC+0  
+   — Batched by city: only one WeatherAPI call per unique location  
 
-❯ 🛠  **Developer-friendly**  
-   — Hot reload in dev (`pnpm start:dev`)  
-   — `pnpm test` / `test:watch` / `test:e2e` targets  
-   — ESLint + Prettier
-   
+❯ 🛠 **Developer-friendly**  
+   — Hot reload in dev mode  
+   — Comprehensive test suite  
+   — ESLint + Prettier  
+   — Docker development environment  
+
+---
+
+##  Architecture
+
+```mermaid
+flowchart TD
+    subgraph Client Layer
+        Web[Web Client]
+        API[API Client]
+    end
+
+    subgraph API Gateway Layer
+        Gateway[API Gateway]
+        LB[Load Balancer]
+    end
+
+    subgraph Microservices Layer
+        WeatherService[Weather Service]
+        SubscriptionService[Subscription Service]
+    end
+
+    subgraph Infrastructure Layer
+        DB[(PostgreSQL)]
+        Redis[(Redis Cache)]
+        WeatherAPI[Weather API]
+        OpenMeteo[OpenMeteo API]
+        SMTP[SMTP Service]
+    end
+
+    Web --> Gateway
+    API --> Gateway
+    Gateway --> LB
+    LB --> WeatherService
+    LB --> SubscriptionService
+    
+    WeatherService --> WeatherAPI
+    WeatherService --> OpenMeteo
+    WeatherService --> Redis
+    SubscriptionService --> DB
+    SubscriptionService --> SMTP
+    SubscriptionService --> Redis
+```
+
 ---
 
 ##  Project Structure
 
 ```sh
 └── genesis-test-assignment/
-    ├── Dockerfile
-    ├── README.md
-    ├── docker-compose.yml
-    ├── nest-cli.json
-    ├── package.json
-    ├── pnpm-lock.yaml
-    ├── public
-    │   ├── pages
-    ├── src
-    │   ├── common
-    │   ├── config
-    │   ├── email
-    │   ├── migrations
-    │   ├── scheduler
-    │   ├── subscription
-    │   ├── weather
-    │   ├── app.module.ts
-    │   ├── data-source.ts
-    │   └── main.ts
-    ├── test
-    │   ├── app.e2e-spec.ts
-    │   └── jest-e2e.json
-    ├── tsconfig.build.json
-    └── tsconfig.json
+    ├── apps/
+    │   ├── api-gateway/           # API Gateway service
+    │   │   ├── src/
+    │   │   │   ├── subscription/  # Subscription endpoints
+    │   │   │   ├── weather/       # Weather endpoints
+    │   │   │   └── main.ts
+    │   │   └── test/
+    │   ├── weather/               # Weather microservice
+    │   │   ├── src/
+    │   │   │   ├── modules/
+    │   │   │   │   ├── weather/   # Weather logic
+    │   │   │   │   └── metrics/   # Monitoring
+    │   │   │   └── main.ts
+    │   │   └── test/
+    │   └── subscription/          # Subscription microservice
+    │       ├── src/
+    │       │   ├── modules/
+    │       │   │   ├── subscription/  # Subscription logic
+    │       │   │   ├── email/         # Email service
+    │       │   │   └── scheduler/     # Scheduled jobs
+    │       │   ├── migrations/        # Database migrations
+    │       │   └── main.ts
+    │       └── test/
+    ├── libs/
+    │   └── common/               # Shared libraries
+    │       ├── src/
+    │       │   ├── types/        # Shared types and DTOs
+    │       │   ├── mappers/      # Data mappers
+    │       │   └── errors/       # Error handling
+    ├── proto/                    # gRPC protocol buffers
+    ├── public/                   # Static web pages
+    ├── documents/                # Architecture documentation
+    ├── docker-compose.yml        # Development environment
+    ├── docker-compose.test.yml   # Testing environment
+    └── README.md
 ```
 
 ---
@@ -96,8 +163,8 @@ npm install -g @nestjs/cli
 npm install -g pnpm
 ```
 
-
 ###  Install repository
+
 **Build from source:**
 
 1. Clone the genesis-test-assignment repository:
@@ -109,44 +176,104 @@ git clone https://github.com/Kyryloloshka/genesis-test-assignment
 ```sh
 cd genesis-test-assignment
 ```
-3. Build docker container
+
+3. Install dependencies:
+```sh
+pnpm install
+```
+
+4. Set up environment variables:
+```sh
+# Create environment files for each service
+cp apps/weather/.env.example apps/weather/.env
+cp apps/subscription/.env.example apps/subscription/.env
+
+# Edit the files with your configuration
+```
+
+5. Build and start all services with Docker Compose:
 ```sh
 docker compose up --build
 ```
-4. Open localhost:5000/api/
-   &nbsp;
-5. Or if you wish to start in dev mode also:
- 
-**Install dependencies using `pnpm`** 
+
+6. Open the API documentation at `localhost:5000/api/`
+
+**Development mode:**
+
+1. Start the development environment:
 ```sh
-pnpm i
+# Start infrastructure services (PostgreSQL, Redis)
+docker compose up postgres redis -d
+
+# Run database migrations
+pnpm migration:run
+
+# Start all services in development mode
+pnpm start:all:dev
 ```
 
-**Start project in dev mode `pnpm`** 
-```sh
-pnpm start:dev
-```
-**And after open localhost:3000/api/**
+2. Access the services:
+   - API Gateway: `localhost:3000/api/`
+   - Weather Service: `localhost:3001/`
+   - Subscription Service: `localhost:3002/`
+   - Health checks: `localhost:3000/health`, `localhost:3001/health`, `localhost:3002/health`
 
 ###  Testing
-#### 3.1 Integration Tests
-To run integration tests, execute the following command:
 
-```bash
-npm run test
-```
-or
+#### Integration Tests
+To run integration tests for all services:
+
 ```bash
 pnpm test
 ```
 
-#### 3.2 E2E Tests
-To run E2E tests with Playwright, execute the following command:
+#### E2E Tests
+To run E2E tests with Playwright:
 
 ```bash
-npm run test:pw
+pnpm test:e2e
 ```
-or
+
+#### Architecture Tests
+To run architecture compliance tests:
+
 ```bash
-pnpm test:pw
+pnpm test:arch
 ```
+
+#### Service-specific Tests
+```bash
+# Test API Gateway
+cd apps/api-gateway && pnpm test
+
+# Test Weather Service
+cd apps/weather && pnpm test
+
+# Test Subscription Service
+cd apps/subscription && pnpm test
+```
+
+---
+
+##  Service Communication
+
+### gRPC Protocol
+All inter-service communication uses gRPC with Protocol Buffers:
+
+- **Weather Service**: Handles weather data requests
+- **Subscription Service**: Manages subscriptions and email delivery
+- **API Gateway**: Routes requests and handles client communication
+
+### API Endpoints
+
+#### Weather Service
+- `GET /weather?city={city}` - Get current weather for a city
+
+#### Subscription Service
+- `POST /subscribe` - Create new subscription
+- `GET /confirm/{token}` - Confirm subscription
+- `GET /unsubscribe/{token}` - Unsubscribe
+
+#### API Gateway
+- All endpoints are proxied through the gateway
+- Swagger documentation available at `/api/`

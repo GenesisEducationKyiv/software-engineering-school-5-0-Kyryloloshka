@@ -10,6 +10,8 @@ import {
   ConfirmSubscriptionResponse,
   UnsubscribeResponse,
 } from '@lib/common';
+import { firstValueFrom } from 'rxjs';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class SubscriptionService implements ISubscriptionService {
@@ -27,16 +29,37 @@ export class SubscriptionService implements ISubscriptionService {
   }
 
   async subscribe(dto: CreateSubscriptionDto): Promise<SubscribeResponse> {
-    return this.subscriptionService.subscribe(dto);
+    try {
+      return await firstValueFrom(this.subscriptionService.subscribe(dto));
+    } catch (error) {
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw new RpcException(error.message || 'Internal server error');
+    }
   }
 
   async confirmSubscription(
     dto: ConfirmSubscriptionDto,
   ): Promise<ConfirmSubscriptionResponse> {
-    return this.subscriptionService.Confirm(dto).toPromise();
+    try {
+      return await firstValueFrom(this.subscriptionService.Confirm(dto));
+    } catch (error) {
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw new RpcException(error.message || 'Internal server error');
+    }
   }
 
   async unsubscribe(dto: UnsubscribeDto): Promise<UnsubscribeResponse> {
-    return this.subscriptionService.unsubscribe(dto);
+    try {
+      return await firstValueFrom(this.subscriptionService.unsubscribe(dto));
+    } catch (error) {
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw new RpcException(error.message || 'Internal server error');
+    }
   }
 }
