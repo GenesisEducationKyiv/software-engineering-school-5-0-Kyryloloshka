@@ -1,10 +1,14 @@
 import { Frequency } from '@lib/common/types/frequency';
-import { CreateSubscriptionDto } from '../dto/create-subscription.dto';
 import { Subscription } from '../entities/subscription.entity';
+import {
+  ConfirmSubscriptionDto,
+  CreateSubscriptionDto,
+  UnsubscribeDto,
+} from '@lib/common';
 
 export interface ISubscriptionService {
   subscribe(dto: CreateSubscriptionDto): Promise<{ token: string }>;
-  confirmSubscription(token: string): Promise<void>;
-  unsubscribe(token: string): Promise<void>;
+  confirmSubscription(dto: ConfirmSubscriptionDto): Promise<void>;
+  unsubscribe(dto: UnsubscribeDto): Promise<void>;
   findConfirmedByFrequency(frequency: Frequency): Promise<Subscription[]>;
 }

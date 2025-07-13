@@ -1,8 +1,8 @@
 import { AxiosError } from 'axios';
 import { IWeatherProvider } from '../interfaces/weather-provider.interface';
-import { WeatherResponse } from '@lib/common/types/weather';
+import { WeatherResponse } from '@lib/common/types/weather/weather';
 import { mapToWeatherResponse } from '@lib/common/mappers/weather.mapper';
-import { GetWeatherDto } from '../dto/get-weather.dto';
+import { GetWeatherDto } from '../../../../../../libs/common/src/types/weather/dto/get-weather.dto';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import {

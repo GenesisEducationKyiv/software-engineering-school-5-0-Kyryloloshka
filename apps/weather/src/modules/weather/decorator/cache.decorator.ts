@@ -1,5 +1,5 @@
 import { IWeatherProvider } from '../interfaces/weather-provider.interface';
-import { GetWeatherDto } from '../dto/get-weather.dto';
+import { GetWeatherDto } from '../../../../../../libs/common/src/types/weather/dto/get-weather.dto';
 import Redis from 'ioredis';
 import { MetricsService } from '../metrics/metrics.service';
 import { WeatherResponse } from '@lib/common';

@@ -2,15 +2,19 @@ import { Module } from '@nestjs/common';
 import { WeatherService } from './weather.service';
 import { WeatherController } from './weather.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { join } from 'path';
+import { WEATHER_PACKAGE_NAME } from '@lib/common';
 
 @Module({
   imports: [
     ClientsModule.register([
       {
         name: 'WEATHER_CLIENT',
-        transport: Transport.TCP,
+        transport: Transport.GRPC,
         options: {
-          port: 3001,
+          package: WEATHER_PACKAGE_NAME,
+          protoPath: join(__dirname, '../../../proto/weather.proto'),
+          url: '0.0.0.0:5000',
         },
       },
     ]),

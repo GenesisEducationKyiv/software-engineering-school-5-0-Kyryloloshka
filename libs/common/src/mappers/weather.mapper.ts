@@ -1,5 +1,5 @@
 import { InternalServerErrorException } from '@nestjs/common';
-import { WeatherResponse } from '../types/weather';
+import { WeatherResponse } from '../types/weather/weather';
 import { mapToWeatherDescription } from './wmo-description.mapper';
 import { mapToDay } from './day.mapper';
 

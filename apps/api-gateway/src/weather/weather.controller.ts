@@ -8,7 +8,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { WeatherService } from './weather.service';
-import { GetWeatherDto } from 'apps/weather/src/modules/weather/dto/get-weather.dto';
+import { GetWeatherDto } from '@lib/common';
 
 @ApiTags('weather')
 @Controller('weather')

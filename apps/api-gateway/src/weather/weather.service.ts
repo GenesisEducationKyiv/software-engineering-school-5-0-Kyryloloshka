@@ -1,15 +1,26 @@
+import {
+  GetWeatherDto,
+  WEATHER_SERVICE_NAME,
+  WeatherServiceClient,
+} from '@lib/common';
 import { Inject, Injectable } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { GetWeatherDto } from 'apps/weather/src/modules/weather/dto/get-weather.dto';
+import { ClientGrpc } from '@nestjs/microservices';
 
 @Injectable()
 export class WeatherService {
+  private weatherService: WeatherServiceClient;
+
   constructor(
     @Inject('WEATHER_CLIENT')
-    private readonly weatherClient: ClientProxy,
+    private readonly client: ClientGrpc,
   ) {}
 
+  onModuleInit() {
+    this.weatherService =
+      this.client.getService<WeatherServiceClient>(WEATHER_SERVICE_NAME);
+  }
+
   async getWeather({ city }: GetWeatherDto): Promise<any> {
-    return this.weatherClient.send({ cmd: 'weather.get' }, { city });
+    return this.weatherService.getWeather({ city });
   }
 }

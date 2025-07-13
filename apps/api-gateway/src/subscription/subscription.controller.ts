@@ -10,7 +10,7 @@ import {
   ApiCreatedResponse,
 } from '@nestjs/swagger';
 import { SubscriptionService } from './subscription.service';
-import { CreateSubscriptionDto } from 'apps/subscription/src/modules/subscription/dto/create-subscription.dto';
+import { CreateSubscriptionDto } from '@lib/common';
 
 @Controller()
 export class SubscriptionController {
@@ -35,7 +35,7 @@ export class SubscriptionController {
   @ApiBadRequestResponse({ description: 'Invalid token' })
   @ApiNotFoundResponse({ description: 'Token not found.' })
   async confirm(@Param('token') token: string) {
-    return await this.subscriptionService.confirmSubscription(token);
+    return await this.subscriptionService.confirmSubscription({ token });
   }
 
   @Get('unsubscribe/:token')
@@ -48,6 +48,6 @@ export class SubscriptionController {
   @ApiBadRequestResponse({ description: 'Invalid token' })
   @ApiNotFoundResponse({ description: 'Token not found.' })
   async unsubscribe(@Param('token') token: string) {
-    return await this.subscriptionService.unsubscribe(token);
+    return await this.subscriptionService.unsubscribe({ token });
   }
 }

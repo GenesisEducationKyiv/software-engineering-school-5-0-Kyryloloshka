@@ -1,7 +1,11 @@
 import { Controller, Inject } from '@nestjs/common';
-import { GetWeatherDto } from './dto/get-weather.dto';
 import { IWeatherService } from './interfaces/weather-service.interface';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
+import {
+  GetWeatherDto,
+  WEATHER_SERVICE_NAME,
+  WeatherResponse,
+} from '@lib/common';
 
 @Controller('weather')
 export class WeatherController {
@@ -10,8 +14,8 @@ export class WeatherController {
     private readonly weatherService: IWeatherService,
   ) {}
 
-  @MessagePattern({ cmd: 'weather.get' })
-  async getWeather(@Payload() payload: GetWeatherDto) {
-    return await this.weatherService.getWeather(payload);
+  @GrpcMethod(WEATHER_SERVICE_NAME, 'GetWeather')
+  async getWeather(dto: GetWeatherDto): Promise<WeatherResponse> {
+    return await this.weatherService.getWeather(dto);
   }
 }

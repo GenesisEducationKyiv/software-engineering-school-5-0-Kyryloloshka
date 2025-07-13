@@ -1,6 +1,6 @@
-import { GetWeatherDto } from '../dto/get-weather.dto';
+import { GetWeatherDto } from '../../../../../../libs/common/src/types/weather/dto/get-weather.dto';
 import { IWeatherProvider } from '../interfaces/weather-provider.interface';
-import { WeatherResponse } from '@lib/common/types/weather';
+import { WeatherResponse } from '@lib/common/types/weather/weather';
 
 export class WeatherProviderChain implements IWeatherProvider {
   public readonly providerName = 'WeatherProviderChain';

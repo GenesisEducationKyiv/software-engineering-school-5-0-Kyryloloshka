@@ -1,33 +1,42 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { CreateSubscriptionDto } from 'apps/subscription/src/modules/subscription/dto/create-subscription.dto';
 import { ISubscriptionService } from './interfaces/subscription-service.interface';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientGrpc } from '@nestjs/microservices';
+import {
+  ConfirmSubscriptionDto,
+  SUBSCRIPTION_SERVICE_NAME,
+  UnsubscribeDto,
+  CreateSubscriptionDto,
+  SubscribeResponse,
+  ConfirmSubscriptionResponse,
+  UnsubscribeResponse,
+} from '@lib/common';
 
 @Injectable()
 export class SubscriptionService implements ISubscriptionService {
+  private subscriptionService: any;
+
   constructor(
     @Inject('SUBSCRIPTION_CLIENT')
-    private readonly subscriptionClient: ClientProxy,
+    private readonly client: ClientGrpc,
   ) {}
 
-  async subscribe(dto: CreateSubscriptionDto) {
-    return await this.subscriptionClient.send(
-      { cmd: 'subscription.subscribe' },
-      dto,
+  onModuleInit() {
+    this.subscriptionService = this.client.getService<any>(
+      SUBSCRIPTION_SERVICE_NAME,
     );
   }
 
-  async confirmSubscription(token: string) {
-    return await this.subscriptionClient.send(
-      { cmd: 'subscription.confirm' },
-      token,
-    );
+  async subscribe(dto: CreateSubscriptionDto): Promise<SubscribeResponse> {
+    return this.subscriptionService.subscribe(dto);
   }
 
-  async unsubscribe(token: string) {
-    return await this.subscriptionClient.send(
-      { cmd: 'subscription.unsubscribe' },
-      token,
-    );
+  async confirmSubscription(
+    dto: ConfirmSubscriptionDto,
+  ): Promise<ConfirmSubscriptionResponse> {
+    return this.subscriptionService.Confirm(dto).toPromise();
+  }
+
+  async unsubscribe(dto: UnsubscribeDto): Promise<UnsubscribeResponse> {
+    return this.subscriptionService.unsubscribe(dto);
   }
 }

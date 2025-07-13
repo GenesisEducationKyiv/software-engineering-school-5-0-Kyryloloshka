@@ -1,4 +1,4 @@
-import { GetWeatherDto } from 'apps/weather/src/modules/weather/dto/get-weather.dto';
+import { GetWeatherDto } from '@lib/common/types/weather/dto/get-weather.dto';
 
 export interface IWeatherService {
   getWeather({ city }: GetWeatherDto): Promise<any>;

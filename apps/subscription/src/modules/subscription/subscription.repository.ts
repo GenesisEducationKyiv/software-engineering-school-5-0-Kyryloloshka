@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Subscription } from './entities/subscription.entity';
-import { CreateSubscriptionDto } from './dto/create-subscription.dto';
+import { CreateSubscriptionDto } from '../../../../../libs/common/src/types/subscription/dto/create-subscription.dto';
 import { Frequency } from '@lib/common/types/frequency';
 import { ISubscriptionRepository } from './interfaces/subscription-repository.interface';
 

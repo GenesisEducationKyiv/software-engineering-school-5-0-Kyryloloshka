@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package subscription;
+
+service SubscriptionService {
+  rpc Subscribe (CreateSubscriptionDto) returns (SubscribeResponse);
+  rpc Confirm (TokenRequest) returns (MessageResponse);
+  rpc Unsubscribe (TokenRequest) returns (MessageResponse);
+}
+
+message CreateSubscriptionDto {
+  string email = 1;
+  string city = 2;
+  string frequency = 3;
+}
+
+message TokenRequest {
+  string token = 1;
+}
+
+message SubscribeResponse {
+  string message = 1;
+  string token = 2;
+}
+
+message MessageResponse {
+  string message = 1;
+}
