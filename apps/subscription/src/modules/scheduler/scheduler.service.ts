@@ -7,20 +7,27 @@ import { LoggedError } from '@lib/common/errors/logged.error';
 import { LogSendUpdate } from './decorators/log-send-update.decorator';
 import { IEmailService } from '../email/interfaces/email-service.interface';
 import { ISubscriptionService } from '../subscription/interfaces/subscription-service.interface';
-import { ClientProxy } from '@nestjs/microservices';
-import { WeatherResponse } from '@lib/common';
+import { ClientGrpc } from '@nestjs/microservices';
+import { WeatherResponse, WeatherServiceClient } from '@lib/common';
 import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class SchedulerService implements ISchedulerService {
+  private weatherService: WeatherServiceClient;
+
   constructor(
     @Inject('ISubscriptionService')
     private readonly subscriptionService: ISubscriptionService,
     @Inject('WEATHER_CLIENT')
-    private readonly weatherClient: ClientProxy,
+    private readonly weatherClient: ClientGrpc,
     @Inject('IEmailService')
     private readonly emailService: IEmailService,
   ) {}
+
+  onModuleInit() {
+    this.weatherService =
+      this.weatherClient.getService<WeatherServiceClient>('WeatherService');
+  }
 
   @Cron('0 * * * *')
   async processHourly(): Promise<void> {
@@ -37,19 +44,14 @@ export class SchedulerService implements ISchedulerService {
       await this.subscriptionService.findConfirmedByFrequency(frequency);
 
     for (const subscription of subscriptions) {
-      this.sendWeatherUpdate(subscription);
+      await this.sendWeatherUpdate(subscription);
     }
   }
 
   @LogSendUpdate()
   private async sendWeatherUpdate(subscription: Subscription) {
     const weather = await lastValueFrom<WeatherResponse>(
-      this.weatherClient.send(
-        { cmd: 'weather.get' },
-        {
-          city: subscription.city,
-        },
-      ),
+      this.weatherService.getWeather({ city: subscription.city }),
     );
 
     if (!weather) {
@@ -63,7 +65,7 @@ export class SchedulerService implements ISchedulerService {
       email: subscription.email,
       token: subscription.token,
       city: subscription.city,
-      weather: weather as any,
+      weather,
     });
 
     throw new LoggedError(

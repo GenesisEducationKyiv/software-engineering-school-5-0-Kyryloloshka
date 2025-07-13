@@ -1,5 +1,5 @@
 import { Frequency } from '@lib/common/types/frequency';
-import { CreateSubscriptionDto } from '../dto/create-subscription.dto';
+import { CreateSubscriptionDto } from '../../../../../../libs/common/src/types/subscription/dto/create-subscription.dto';
 import { Subscription } from '../entities/subscription.entity';
 
 export interface ISubscriptionRepository {

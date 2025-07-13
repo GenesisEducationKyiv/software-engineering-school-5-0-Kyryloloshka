@@ -3,11 +3,12 @@ import { SchedulerService } from './scheduler.service';
 import { ISubscriptionService } from '../subscription/interfaces/subscription-service.interface';
 import { IEmailService } from '../email/interfaces/email-service.interface';
 import { of } from 'rxjs';
+import { WeatherServiceClient } from '@lib/common';
 
 describe('SchedulerService', () => {
   let service: SchedulerService;
   let subSvc: jest.Mocked<ISubscriptionService>;
-  let weatherSvc: jest.Mocked<{ send: jest.Mock }>;
+  let weatherSvc: jest.Mocked<WeatherServiceClient>;
   let emailSvc: jest.Mocked<IEmailService>;
 
   const mockSubSvc = (): jest.Mocked<ISubscriptionService> =>
@@ -16,6 +17,10 @@ describe('SchedulerService', () => {
     ({ sendWeatherUpdate: jest.fn() }) as any;
 
   beforeEach(async () => {
+    weatherSvc = {
+      getWeather: jest.fn(),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SchedulerService,
@@ -23,7 +28,7 @@ describe('SchedulerService', () => {
         {
           provide: 'WEATHER_CLIENT',
           useValue: {
-            send: jest.fn(),
+            getService: () => weatherSvc,
           },
         },
         { provide: 'IEmailService', useFactory: mockEmailSvc },
@@ -32,8 +37,8 @@ describe('SchedulerService', () => {
 
     service = module.get(SchedulerService);
     subSvc = module.get('ISubscriptionService');
-    weatherSvc = module.get('WEATHER_CLIENT');
     emailSvc = module.get('IEmailService');
+    service.onModuleInit();
   });
 
   it('should be defined', () => {
@@ -47,7 +52,7 @@ describe('SchedulerService', () => {
     ];
     subSvc.findConfirmedByFrequency.mockResolvedValue(subscriptions as any);
 
-    weatherSvc.send.mockImplementation(() =>
+    weatherSvc.getWeather.mockImplementation(() =>
       of({
         temperature: 20,
         humidity: 50,
@@ -58,7 +63,7 @@ describe('SchedulerService', () => {
     await service.processDaily();
 
     expect(subSvc.findConfirmedByFrequency).toHaveBeenCalledWith('daily');
-    expect(weatherSvc.send).toHaveBeenCalledTimes(2);
+    expect(weatherSvc.getWeather).toHaveBeenCalledTimes(2);
     expect(emailSvc.sendWeatherUpdate).toHaveBeenCalledTimes(2);
     expect(emailSvc.sendWeatherUpdate).toHaveBeenCalledWith({
       email: 'a@mail.com',
@@ -92,7 +97,7 @@ describe('SchedulerService', () => {
     subSvc.findConfirmedByFrequency.mockResolvedValue([
       { id: 1, email: 'a@mail.com', city: 'Kyiv', token: 't1' },
     ] as any);
-    weatherSvc.send.mockImplementationOnce(() => of(null));
+    weatherSvc.getWeather.mockImplementationOnce(() => of(null));
 
     await service.processDaily();
 

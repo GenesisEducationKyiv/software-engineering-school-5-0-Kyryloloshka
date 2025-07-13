@@ -1,5 +1,5 @@
 import { TransportOptions } from 'nodemailer';
-import { join } from 'node:path';
+import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 export const emailSenderConfig = {

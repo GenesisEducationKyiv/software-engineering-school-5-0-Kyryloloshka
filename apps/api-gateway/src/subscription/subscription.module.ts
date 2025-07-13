@@ -2,15 +2,18 @@ import { Module } from '@nestjs/common';
 import { SubscriptionController } from './subscription.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { SubscriptionService } from './subscription.service';
+import { join } from 'path';
 
 @Module({
   imports: [
     ClientsModule.register([
       {
         name: 'SUBSCRIPTION_CLIENT',
-        transport: Transport.TCP,
+        transport: Transport.GRPC,
         options: {
-          port: 3002,
+          package: 'subscription',
+          protoPath: join(process.cwd(), 'proto/subscription.proto'),
+          url: '0.0.0.0:5001',
         },
       },
     ]),

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import Handlebars from 'handlebars';
 import { createTransport } from 'nodemailer';
 import * as path from 'path';
-import { WeatherResponse } from '@lib/common/types/weather';
+import { WeatherResponse } from '@lib/common/types/weather/weather';
 import { promises as fs } from 'fs';
 import { LogSendEmail } from './decorators/log-send-email.decorator';
 import { IEmailService } from './interfaces/email-service.interface';
@@ -69,6 +69,8 @@ export class EmailService implements IEmailService {
       description: weather.description,
       unsubscribeUrl,
     });
+
+    console.log(html);
 
     const mailOptions = {
       from: `"Weather App" <${process.env.EMAIL_USER}>`,

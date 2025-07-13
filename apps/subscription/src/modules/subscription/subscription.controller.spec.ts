@@ -36,7 +36,7 @@ describe('SubscriptionController', () => {
 
   describe('subscribe', () => {
     it('should call service.subscribe and return message and token', async () => {
-      service.subscribe.mockResolvedValueOnce('sometoken');
+      service.subscribe.mockResolvedValueOnce({ token: 'sometoken' });
       const dto = { email: 'test@mail.com', city: 'Kyiv', frequency: 'daily' };
       const result = await controller.subscribe(dto as any);
       expect(service.subscribe).toHaveBeenCalledWith(dto);
@@ -50,8 +50,12 @@ describe('SubscriptionController', () => {
   describe('confirm', () => {
     it('should call service.confirmSubscription and return success message', async () => {
       service.confirmSubscription.mockResolvedValueOnce(undefined);
-      const result = await controller.confirm('sometoken');
-      expect(service.confirmSubscription).toHaveBeenCalledWith('sometoken');
+      const result = await controller.confirmSubscription({
+        token: 'sometoken',
+      });
+      expect(service.confirmSubscription).toHaveBeenCalledWith({
+        token: 'sometoken',
+      });
       expect(result).toEqual({
         message: 'Subscription confirmed successfully',
       });
@@ -61,8 +65,8 @@ describe('SubscriptionController', () => {
   describe('unsubscribe', () => {
     it('should call service.unsubscribe and return success message', async () => {
       service.unsubscribe.mockResolvedValueOnce(undefined);
-      const result = await controller.unsubscribe('sometoken');
-      expect(service.unsubscribe).toHaveBeenCalledWith('sometoken');
+      const result = await controller.unsubscribe({ token: 'sometoken' });
+      expect(service.unsubscribe).toHaveBeenCalledWith({ token: 'sometoken' });
       expect(result).toEqual({ message: 'Successfully unsubscribed' });
     });
   });

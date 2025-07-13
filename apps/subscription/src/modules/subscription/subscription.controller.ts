@@ -1,7 +1,15 @@
 import { Controller, Inject } from '@nestjs/common';
-import { CreateSubscriptionDto } from './dto/create-subscription.dto';
+import { CreateSubscriptionDto } from '../../../../../libs/common/src/types/subscription/dto/create-subscription.dto';
 import { ISubscriptionService } from './interfaces/subscription-service.interface';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
+import {
+  ConfirmSubscriptionDto,
+  ConfirmSubscriptionResponse,
+  SubscribeResponse,
+  SUBSCRIPTION_SERVICE_NAME,
+  UnsubscribeDto,
+  UnsubscribeResponse,
+} from '@lib/common';
 
 @Controller()
 export class SubscriptionController {
@@ -10,9 +18,9 @@ export class SubscriptionController {
     private readonly subscriptionService: ISubscriptionService,
   ) {}
 
-  @MessagePattern({ cmd: 'subscription.subscribe' })
-  async subscribe(@Payload() dto: CreateSubscriptionDto) {
-    const token = await this.subscriptionService.subscribe(dto);
+  @GrpcMethod(SUBSCRIPTION_SERVICE_NAME, 'Subscribe')
+  async subscribe(dto: CreateSubscriptionDto): Promise<SubscribeResponse> {
+    const { token } = await this.subscriptionService.subscribe(dto);
 
     return {
       message: 'Subscription successful. Confirmation email sent.',
@@ -20,16 +28,18 @@ export class SubscriptionController {
     };
   }
 
-  @MessagePattern({ cmd: 'subscription.confirm' })
-  async confirm(@Payload() token: string) {
-    await this.subscriptionService.confirmSubscription(token);
+  @GrpcMethod(SUBSCRIPTION_SERVICE_NAME, 'Confirm')
+  async confirmSubscription(
+    dto: ConfirmSubscriptionDto,
+  ): Promise<ConfirmSubscriptionResponse> {
+    await this.subscriptionService.confirmSubscription(dto);
 
     return { message: 'Subscription confirmed successfully' };
   }
 
-  @MessagePattern({ cmd: 'subscription.unsubscribe' })
-  async unsubscribe(@Payload() token: string) {
-    await this.subscriptionService.unsubscribe(token);
+  @GrpcMethod(SUBSCRIPTION_SERVICE_NAME, 'Unsubscribe')
+  async unsubscribe(dto: UnsubscribeDto): Promise<UnsubscribeResponse> {
+    await this.subscriptionService.unsubscribe(dto);
 
     return { message: 'Successfully unsubscribed' };
   }

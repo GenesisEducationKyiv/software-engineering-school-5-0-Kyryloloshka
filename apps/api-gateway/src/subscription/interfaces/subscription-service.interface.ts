@@ -1,7 +1,15 @@
-import { CreateSubscriptionDto } from 'apps/subscription/src/modules/subscription/dto/create-subscription.dto';
+import {
+  ConfirmSubscriptionDto,
+  ConfirmSubscriptionResponse,
+  UnsubscribeDto,
+  UnsubscribeResponse,
+} from '@lib/common';
+import { CreateSubscriptionDto } from '@lib/common';
 
 export interface ISubscriptionService {
-  subscribe(dto: CreateSubscriptionDto);
-  confirmSubscription(token: string);
-  unsubscribe(token: string);
+  subscribe(dto: CreateSubscriptionDto): Promise<ConfirmSubscriptionResponse>;
+  confirmSubscription(
+    dto: ConfirmSubscriptionDto,
+  ): Promise<ConfirmSubscriptionResponse>;
+  unsubscribe(dto: UnsubscribeDto): Promise<UnsubscribeResponse>;
 }

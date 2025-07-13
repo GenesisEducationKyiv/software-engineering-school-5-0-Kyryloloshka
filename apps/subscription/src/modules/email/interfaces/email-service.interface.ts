@@ -1,4 +1,4 @@
-import { WeatherResponse } from '@lib/common/types/weather';
+import { WeatherResponse } from '@lib/common/types/weather/weather';
 
 export interface IEmailService {
   sendConfirmationEmail(email: string, token: string): Promise<void>;

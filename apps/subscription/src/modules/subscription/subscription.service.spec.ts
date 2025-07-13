@@ -5,6 +5,7 @@ import { IEmailService } from '../email/interfaces/email-service.interface';
 import { Subscription } from './entities/subscription.entity';
 import { Frequency } from '@lib/common/types/frequency';
 import { of } from 'rxjs';
+import { WeatherServiceClient } from '@lib/common';
 
 const repoMock = (): jest.Mocked<ISubscriptionRepository> => ({
   findOneByEmail: jest.fn(),
@@ -23,9 +24,11 @@ describe('SubscriptionService', () => {
   let service: SubscriptionService;
   let repo: jest.Mocked<ISubscriptionRepository>;
   let email: jest.Mocked<IEmailService>;
-  let weather: jest.Mocked<{ send: jest.Mock }>;
+  let weatherServiceMock: jest.Mocked<WeatherServiceClient>;
 
   beforeEach(async () => {
+    weatherServiceMock = { getWeather: jest.fn() };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SubscriptionService,
@@ -34,7 +37,7 @@ describe('SubscriptionService', () => {
         {
           provide: 'WEATHER_CLIENT',
           useValue: {
-            send: jest.fn(),
+            getService: () => weatherServiceMock,
           },
         },
       ],
@@ -43,10 +46,13 @@ describe('SubscriptionService', () => {
     service = module.get<SubscriptionService>(SubscriptionService);
     repo = module.get('ISubscriptionRepository');
     email = module.get('IEmailService');
-    weather = module.get('WEATHER_CLIENT');
+    service.onModuleInit?.();
+
     jest.clearAllMocks();
 
-    weather.send.mockImplementation(() => of({ temperature: 20 }));
+    weatherServiceMock.getWeather.mockImplementation(() =>
+      of({ temperature: 20, humidity: 80, description: 'Clear sky' }),
+    );
   });
 
   it('should be defined', () => {
@@ -67,19 +73,21 @@ describe('SubscriptionService', () => {
 
     it('should throw BadRequestException if weather is invalid', async () => {
       repo.findOneByEmail.mockResolvedValueOnce(null);
-      weather.send.mockImplementationOnce(() => of(null));
+      weatherServiceMock.getWeather.mockImplementationOnce(() => of(null));
       await expect(
         service.subscribe({
           email: 'test@mail.com',
           city: 'Kyiv',
           frequency: 'daily',
         }),
-      ).rejects.toThrow('Invalid input');
+      ).rejects.toThrow('Weather for this city is not available');
     });
 
     it('should save subscription and send confirmation email', async () => {
       repo.findOneByEmail.mockResolvedValueOnce(null);
-      weather.send.mockImplementationOnce(() => of({ temperature: 20 }));
+      weatherServiceMock.getWeather.mockImplementationOnce(() =>
+        of({ temperature: 20 } as any),
+      );
       repo.createAndSave.mockResolvedValueOnce({ token: 'sometoken' } as any);
       email.sendConfirmationEmail.mockResolvedValueOnce(undefined);
 
@@ -99,14 +107,14 @@ describe('SubscriptionService', () => {
 
     it('should throw BadRequestException if weather.temperature is missing', async () => {
       repo.findOneByEmail.mockResolvedValueOnce(null);
-      weather.send.mockImplementationOnce(() => of({}));
+      weatherServiceMock.getWeather.mockImplementationOnce(() => of({} as any));
       await expect(
         service.subscribe({
           email: 'test2@mail.com',
           city: 'Lviv',
           frequency: 'daily',
         }),
-      ).rejects.toThrow('Invalid input');
+      ).rejects.toThrow('Weather for this city is not available');
     });
   });
 
@@ -114,7 +122,7 @@ describe('SubscriptionService', () => {
     it('should throw NotFoundException if token is invalid', async () => {
       repo.findOneByToken.mockResolvedValueOnce(null);
       await expect(
-        service.confirmSubscription('invalid-token'),
+        service.confirmSubscription({ token: 'invalid-token' }),
       ).rejects.toThrow('Invalid or expired token');
     });
 
@@ -122,7 +130,7 @@ describe('SubscriptionService', () => {
       const subscription = { confirmed: false } as Subscription;
       repo.findOneByToken.mockResolvedValueOnce(subscription);
       repo.save.mockResolvedValueOnce({} as any);
-      await service.confirmSubscription('valid-token');
+      await service.confirmSubscription({ token: 'valid-token' });
       expect(subscription.confirmed).toBe(true);
       expect(repo.save).toHaveBeenCalledWith(subscription);
     });
@@ -131,7 +139,7 @@ describe('SubscriptionService', () => {
   describe('unsubscribe', () => {
     it('should throw NotFoundException if token is invalid', async () => {
       repo.findOneByToken.mockResolvedValueOnce(null);
-      await expect(service.unsubscribe('bad-token')).rejects.toThrow(
+      await expect(service.unsubscribe({ token: 'bad-token' })).rejects.toThrow(
         'Subscription not found or invalid token',
       );
     });
@@ -140,7 +148,7 @@ describe('SubscriptionService', () => {
       const subscription = { id: 1 };
       repo.findOneByToken.mockResolvedValueOnce(subscription as any);
       repo.remove = jest.fn().mockResolvedValueOnce({});
-      await service.unsubscribe('good-token');
+      await service.unsubscribe({ token: 'good-token' });
       expect(repo.remove).toHaveBeenCalledWith(subscription);
     });
   });
@@ -168,14 +176,14 @@ describe('SubscriptionService', () => {
   describe('subscribe', () => {
     it('should throw BadRequestException if weather.temperature is missing', async () => {
       repo.findOneByEmail.mockResolvedValueOnce(null);
-      weather.send.mockImplementationOnce(() => of({}));
+      weatherServiceMock.getWeather.mockImplementationOnce(() => of({} as any));
       await expect(
         service.subscribe({
           email: 'test2@mail.com',
           city: 'Lviv',
           frequency: 'daily',
         }),
-      ).rejects.toThrow('Invalid input');
+      ).rejects.toThrow('Weather for this city is not available');
     });
   });
 
@@ -183,9 +191,9 @@ describe('SubscriptionService', () => {
     it('should not call save if subscription not found', async () => {
       repo.findOneByToken.mockResolvedValueOnce(null);
       repo.save = jest.fn();
-      await expect(service.confirmSubscription('bad-token')).rejects.toThrow(
-        'Invalid or expired token',
-      );
+      await expect(
+        service.confirmSubscription({ token: 'bad-token' }),
+      ).rejects.toThrow('Invalid or expired token');
       expect(repo.save).not.toHaveBeenCalled();
     });
 
@@ -193,7 +201,7 @@ describe('SubscriptionService', () => {
       const subscription = { confirmed: false } as Subscription;
       repo.findOneByToken.mockResolvedValueOnce(subscription);
       repo.save.mockResolvedValueOnce({} as any);
-      await service.confirmSubscription('token');
+      await service.confirmSubscription({ token: 'valid-token' });
       expect(subscription.confirmed).toBe(true);
       expect(repo.save).toHaveBeenCalledWith(subscription);
     });

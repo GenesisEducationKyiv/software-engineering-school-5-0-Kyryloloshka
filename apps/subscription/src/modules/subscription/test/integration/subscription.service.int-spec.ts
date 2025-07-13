@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
-import { CreateSubscriptionDto } from '../../dto/create-subscription.dto';
+import { CreateSubscriptionDto } from '../../../../../../../libs/common/src/types/subscription/dto/create-subscription.dto';
 import { Subscription } from '../../entities/subscription.entity';
 import { INestApplication } from '@nestjs/common';
 import { IEmailService } from '../../../../modules/email/interfaces/email-service.interface';
@@ -78,7 +78,7 @@ describe('SubscriptionService Int', () => {
     };
     const { token } = await service.subscribe(dto);
 
-    await service.confirmSubscription(token);
+    await service.confirmSubscription({ token });
 
     const repo = dataSource.getRepository(Subscription);
     const sub = await repo.findOne({ where: { email: dto.email } });
@@ -94,9 +94,9 @@ describe('SubscriptionService Int', () => {
     };
     const { token } = await service.subscribe(dto);
 
-    await service.confirmSubscription(token);
+    await service.confirmSubscription({ token });
 
-    await service.unsubscribe(token);
+    await service.unsubscribe({ token });
 
     const repo = dataSource.getRepository(Subscription);
     const sub = await repo.findOne({ where: { email: dto.email } });
@@ -118,8 +118,8 @@ describe('SubscriptionService Int', () => {
     const { token: token1 } = await service.subscribe(dto1);
     const { token: token2 } = await service.subscribe(dto2);
 
-    await service.confirmSubscription(token1);
-    await service.confirmSubscription(token2);
+    await service.confirmSubscription({ token: token1 });
+    await service.confirmSubscription({ token: token2 });
 
     const confirmed = await service.findConfirmedByFrequency('daily');
 

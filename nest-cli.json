@@ -1,14 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/subscription/src",
+  "sourceRoot": "apps/api-gateway/src",
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": true,
-    "tsConfigPath": "apps/subscription/tsconfig.app.json"
+    "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
   },
   "monorepo": true,
-  "root": "apps/subscription",
+  "root": "apps/api-gateway",
   "projects": {
     "api-gateway": {
       "type": "application",
@@ -16,7 +16,9 @@
       "entryFile": "main",
       "sourceRoot": "apps/api-gateway/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
+        "tsConfigPath": "apps/api-gateway/tsconfig.app.json",
+        "assets": ["proto/*.proto"],
+        "watchAssets": true
       }
     },
     "common": {
@@ -34,7 +36,9 @@
       "entryFile": "main",
       "sourceRoot": "apps/subscription/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/subscription/tsconfig.app.json"
+        "tsConfigPath": "apps/subscription/tsconfig.app.json",
+        "assets": ["proto/*.proto"],
+        "watchAssets": true
       }
     },
     "weather": {
@@ -43,7 +47,9 @@
       "entryFile": "main",
       "sourceRoot": "apps/weather/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/weather/tsconfig.app.json"
+        "tsConfigPath": "apps/weather/tsconfig.app.json",
+        "assets": ["proto/*.proto"],
+        "watchAssets": true
       }
     }
   }

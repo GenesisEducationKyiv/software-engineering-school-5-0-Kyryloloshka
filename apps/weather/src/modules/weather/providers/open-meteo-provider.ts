@@ -1,17 +1,15 @@
-import { AxiosError } from 'axios';
 import { IWeatherProvider } from '../interfaces/weather-provider.interface';
-import { WeatherResponse } from '@lib/common/types/weather';
+import { WeatherResponse } from '@lib/common/types/weather/weather';
 import { mapToWeatherResponse } from '@lib/common/mappers/weather.mapper';
-import { GetWeatherDto } from '../dto/get-weather.dto';
+import { GetWeatherDto } from '../../../../../../libs/common/src/types/weather/dto/get-weather.dto';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
+import { Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
+import { AxiosError } from 'axios';
 import { HttpService } from '@nestjs/axios';
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LogWeatherProvider } from '../decorator/log-weather-provider.decorator';
+import { ErrorCodes } from '@lib/common';
 
 @Injectable()
 export class OpenMeteoWeatherProvider implements IWeatherProvider {
@@ -35,17 +33,25 @@ export class OpenMeteoWeatherProvider implements IWeatherProvider {
             error.response?.status === 400 ||
             error.response?.status === 404
           ) {
-            return throwError(() => new NotFoundException('City not found'));
+            return throwError(
+              () =>
+                new RpcException(
+                  `${ErrorCodes.CITY_NOT_FOUND}: City not found`,
+                ),
+            );
           }
           return throwError(
             () =>
-              new InternalServerErrorException('Failed to fetch coordinates'),
+              new RpcException(
+                `${ErrorCodes.WEATHER_PROVIDER_ERROR}: Failed to fetch coordinates`,
+              ),
           );
         }),
       ),
     );
-    if (!geo.data.results?.length)
-      throw new NotFoundException('City not found');
+    if (!geo.data.results?.length) {
+      throw new RpcException(`${ErrorCodes.CITY_NOT_FOUND}: City not found`);
+    }
     return {
       latitude: geo.data.results[0].latitude,
       longitude: geo.data.results[0].longitude,
@@ -62,11 +68,18 @@ export class OpenMeteoWeatherProvider implements IWeatherProvider {
       this.httpService.get(getWeatherUrl).pipe(
         catchError((error: any) => {
           if (error.reason === 'Not Found') {
-            return throwError(() => new NotFoundException('City not found'));
+            return throwError(
+              () =>
+                new RpcException(
+                  `${ErrorCodes.CITY_NOT_FOUND}: City not found`,
+                ),
+            );
           }
           return throwError(
             () =>
-              new InternalServerErrorException('Failed to fetch weather data'),
+              new RpcException(
+                `${ErrorCodes.WEATHER_PROVIDER_ERROR}: Failed to fetch weather data`,
+              ),
           );
         }),
       ),

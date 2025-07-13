@@ -1,8 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { GetWeatherDto } from './dto/get-weather.dto';
 import { IWeatherProvider } from './interfaces/weather-provider.interface';
 import { IWeatherService } from './interfaces/weather-service.interface';
-import { WeatherResponse } from '@lib/common/types/weather';
+import { GetWeatherDto, WeatherResponse } from '@lib/common';
 
 @Injectable()
 export class WeatherService implements IWeatherService {

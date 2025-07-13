@@ -1,32 +1,40 @@
-import {
-  Injectable,
-  ConflictException,
-  BadRequestException,
-  NotFoundException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Subscription } from './entities/subscription.entity';
-import { CreateSubscriptionDto } from './dto/create-subscription.dto';
+import { CreateSubscriptionDto } from '../../../../../libs/common/src/types/subscription/dto/create-subscription.dto';
 import { ISubscriptionService } from './interfaces/subscription-service.interface';
 import { LogSubscription } from './decorators/log-subscription.decorator';
 import { IEmailService } from '../email/interfaces/email-service.interface';
 import { ISubscriptionRepository } from './interfaces/subscription-repository.interface';
 import { Frequency } from '@lib/common/types/frequency';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientGrpc } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
-import { WeatherResponse } from '@lib/common';
+import {
+  ConfirmSubscriptionDto,
+  UnsubscribeDto,
+  WEATHER_SERVICE_NAME,
+  WeatherServiceClient,
+  ErrorCodes,
+} from '@lib/common';
 import { generateToken } from '@lib/common/generators/token.generator';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class SubscriptionService implements ISubscriptionService {
+  private weatherService: WeatherServiceClient;
+
   constructor(
     @Inject('IEmailService')
     private readonly emailService: IEmailService,
     @Inject('WEATHER_CLIENT')
-    private readonly weatherClient: ClientProxy,
+    private readonly weatherClient: ClientGrpc,
     @Inject('ISubscriptionRepository')
     private readonly subscriptionRepo: ISubscriptionRepository,
   ) {}
+
+  onModuleInit() {
+    this.weatherService =
+      this.weatherClient.getService<WeatherServiceClient>(WEATHER_SERVICE_NAME);
+  }
 
   @LogSubscription()
   async subscribe(dto: CreateSubscriptionDto): Promise<{ token: string }> {
@@ -34,14 +42,22 @@ export class SubscriptionService implements ISubscriptionService {
       dto.email,
     );
     if (existingSubscription) {
-      throw new ConflictException('Email already subscribed');
+      throw new RpcException(
+        `${ErrorCodes.EMAIL_ALREADY_SUBSCRIBED}: Email already subscribed`,
+      );
     }
 
-    const weather = await lastValueFrom<WeatherResponse>(
-      this.weatherClient.send({ cmd: 'weather.get' }, { city: dto.city }),
-    );
-    if (!weather || !weather.temperature) {
-      throw new BadRequestException('Invalid input');
+    try {
+      const weather = await lastValueFrom(
+        this.weatherService.getWeather({ city: dto.city }),
+      );
+      if (!weather || !weather.temperature) {
+        throw new RpcException(
+          `${ErrorCodes.WEATHER_UNAVAILABLE}: Weather for this city is not available`,
+        );
+      }
+    } catch (error) {
+      throw error;
     }
 
     const token = generateToken();
@@ -57,12 +73,13 @@ export class SubscriptionService implements ISubscriptionService {
   }
 
   @LogSubscription()
-  async confirmSubscription(token: string): Promise<void> {
-    console.log(token);
-    const subscription = await this.subscriptionRepo.findOneByToken(token);
+  async confirmSubscription(dto: ConfirmSubscriptionDto): Promise<void> {
+    const subscription = await this.subscriptionRepo.findOneByToken(dto.token);
 
     if (!subscription) {
-      throw new NotFoundException('Invalid or expired token');
+      throw new RpcException(
+        `${ErrorCodes.INVALID_TOKEN}: Invalid or expired token`,
+      );
     }
 
     subscription.confirmed = true;
@@ -70,11 +87,13 @@ export class SubscriptionService implements ISubscriptionService {
   }
 
   @LogSubscription()
-  async unsubscribe(token: string): Promise<void> {
-    const subscription = await this.subscriptionRepo.findOneByToken(token);
+  async unsubscribe(dto: UnsubscribeDto): Promise<void> {
+    const subscription = await this.subscriptionRepo.findOneByToken(dto.token);
 
     if (!subscription) {
-      throw new NotFoundException('Subscription not found or invalid token');
+      throw new RpcException(
+        `${ErrorCodes.SUBSCRIPTION_NOT_FOUND}: Subscription not found or invalid token`,
+      );
     }
 
     await this.subscriptionRepo.remove(subscription);
