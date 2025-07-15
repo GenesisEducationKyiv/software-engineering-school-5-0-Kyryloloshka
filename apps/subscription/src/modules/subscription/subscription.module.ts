@@ -9,12 +9,14 @@ import { EmailModule } from '../email/email.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
 import { WEATHER_PACKAGE_NAME } from '@lib/common';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Subscription]),
     HttpModule,
     EmailModule,
+    MetricsModule,
     ClientsModule.register([
       {
         name: 'WEATHER_CLIENT',

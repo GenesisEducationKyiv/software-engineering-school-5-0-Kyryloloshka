@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { WeatherModule } from './weather/weather.module';
 import { envWeatherValidationSchema } from '../config/env.validation';
+import { MetricsModule } from './weather/metrics/metrics.module';
 
 @Module({
   imports: [
@@ -10,8 +11,7 @@ import { envWeatherValidationSchema } from '../config/env.validation';
       validationSchema: envWeatherValidationSchema,
     }),
     WeatherModule,
+    MetricsModule,
   ],
-  controllers: [],
-  providers: [],
 })
 export class WeatherAppModule {}

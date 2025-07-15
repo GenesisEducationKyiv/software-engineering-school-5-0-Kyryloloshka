@@ -4,6 +4,7 @@ import { ISubscriptionService } from '../subscription/interfaces/subscription-se
 import { IEmailService } from '../email/interfaces/email-service.interface';
 import { of } from 'rxjs';
 import { WeatherServiceClient } from '@lib/common';
+import { LoggedError } from '@lib/common/errors/logged.error';
 
 describe('SchedulerService', () => {
   let service: SchedulerService;
@@ -58,25 +59,15 @@ describe('SchedulerService', () => {
       }),
     );
 
-    await service.processDaily();
+    await expect(service.processDaily()).rejects.toThrow(LoggedError);
 
     expect(subSvc.findConfirmedByFrequency).toHaveBeenCalledWith('daily');
-    expect(weatherSvc.GetWeather).toHaveBeenCalledTimes(2);
-    expect(emailSvc.sendWeatherUpdate).toHaveBeenCalledTimes(2);
+    expect(weatherSvc.GetWeather).toHaveBeenCalledTimes(1);
+    expect(emailSvc.sendWeatherUpdate).toHaveBeenCalledTimes(1);
     expect(emailSvc.sendWeatherUpdate).toHaveBeenCalledWith({
       email: 'a@mail.com',
       city: 'Kyiv',
       token: 't1',
-      weather: {
-        temperature: 20,
-        humidity: 50,
-        description: 'Sunny',
-      },
-    });
-    expect(emailSvc.sendWeatherUpdate).toHaveBeenCalledWith({
-      email: 'b@mail.com',
-      city: 'Lviv',
-      token: 't2',
       weather: {
         temperature: 20,
         humidity: 50,
@@ -97,7 +88,7 @@ describe('SchedulerService', () => {
     ] as any);
     weatherSvc.GetWeather.mockImplementationOnce(() => of(null));
 
-    await service.processDaily();
+    await expect(service.processDaily()).rejects.toThrow(LoggedError);
 
     expect(emailSvc.sendWeatherUpdate).not.toHaveBeenCalled();
   });

@@ -8,10 +8,9 @@ import { OpenMeteoWeatherProvider } from './providers/open-meteo-provider';
 import { WeatherApiProvider } from './providers/weather-api-provider';
 import Redis from 'ioredis';
 import { WeatherProviderCacheDecorator } from './decorator/cache.decorator';
-import { MetricsService } from './metrics/metrics.service';
-import { MetricsController } from './metrics/metrics.controller';
 import { MetricsModule } from './metrics/metrics.module';
 import { envWeatherValidationSchema } from '../../config/env.validation';
+import { MetricsService } from './metrics/metrics.service';
 
 @Module({
   imports: [
@@ -24,9 +23,8 @@ import { envWeatherValidationSchema } from '../../config/env.validation';
       validationSchema: envWeatherValidationSchema,
     }),
   ],
-  controllers: [WeatherController, MetricsController],
+  controllers: [WeatherController],
   providers: [
-    WeatherService,
     WeatherApiProvider,
     OpenMeteoWeatherProvider,
     {

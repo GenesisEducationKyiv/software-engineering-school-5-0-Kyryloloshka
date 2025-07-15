@@ -6,6 +6,7 @@ import { Subscription } from './entities/subscription.entity';
 import { Frequency } from '@lib/common/types/frequency';
 import { of } from 'rxjs';
 import { WeatherServiceClient } from '@lib/common';
+import { MetricsService } from './metrics/metrics.service';
 
 const repoMock = (): jest.Mocked<ISubscriptionRepository> => ({
   findOneByEmail: jest.fn(),
@@ -38,6 +39,15 @@ describe('SubscriptionService', () => {
           provide: 'WEATHER_CLIENT',
           useValue: {
             getService: () => weatherServiceMock,
+          },
+        },
+        {
+          provide: MetricsService,
+          useValue: {
+            errorCounter: { inc: jest.fn() },
+            subscribeCounter: { inc: jest.fn() },
+            confirmCounter: { inc: jest.fn() },
+            unsubscribeCounter: { inc: jest.fn() },
           },
         },
       ],
