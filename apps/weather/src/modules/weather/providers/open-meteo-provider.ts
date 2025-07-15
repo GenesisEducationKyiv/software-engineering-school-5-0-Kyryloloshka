@@ -15,31 +15,48 @@ import {
   handleAll,
   ConsecutiveBreaker,
   CircuitState,
+  retry,
+  ExponentialBackoff,
+  wrap,
 } from 'cockatiel';
 
 @Injectable()
 export class OpenMeteoWeatherProvider implements IWeatherProvider {
   public readonly providerName = 'OpenMeteo';
   private readonly logger = new Logger(OpenMeteoWeatherProvider.name);
-  private readonly breaker;
+  private readonly policy;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    this.breaker = circuitBreaker(handleAll, {
+    const breaker = circuitBreaker(handleAll, {
       halfOpenAfter: 10_000,
       breaker: new ConsecutiveBreaker(3),
     });
-    this.breaker.onBreak(() => {
+    breaker.onBreak(() => {
       this.logger.warn(`[${this.providerName}] Circuit breaker OPEN`);
     });
-    this.breaker.onReset(() => {
+    breaker.onReset(() => {
       this.logger.log(`[${this.providerName}] Circuit breaker CLOSED`);
     });
-    this.breaker.onHalfOpen(() => {
+    breaker.onHalfOpen(() => {
       this.logger.log(`[${this.providerName}] Circuit breaker HALF-OPEN`);
     });
+
+    const retryPolicy = retry(handleAll, {
+      maxAttempts: 3,
+      backoff: new ExponentialBackoff({ initialDelay: 200, maxDelay: 1000 }),
+    });
+    retryPolicy.onRetry((info: any) => {
+      const { attempt, delay } = info;
+      const reason = info.reason ?? info.error ?? info.value;
+      this.logger.warn(
+        `[${this.providerName}] Retry attempt #${attempt} after ${delay}ms due to: ${reason instanceof Error ? reason.message : String(reason)}`,
+      );
+    });
+
+    this.policy = wrap(retryPolicy, breaker);
   }
 
   @LogWeatherProvider()
@@ -87,7 +104,7 @@ export class OpenMeteoWeatherProvider implements IWeatherProvider {
     const { latitude, longitude } = await this.getCoordinates(city);
     const getWeatherUrl = `${baseUrl}/forecast?latitude=${latitude}&longitude=${longitude}&current-weather=true&current=relative_humidity_2m,temperature_2m,weather_code,is_day`;
     try {
-      const response = await this.breaker.execute(() =>
+      const response = await this.policy.execute(() =>
         firstValueFrom(
           this.httpService.get(getWeatherUrl).pipe(
             catchError((error: any) => {
@@ -111,7 +128,7 @@ export class OpenMeteoWeatherProvider implements IWeatherProvider {
       );
       return mapToWeatherResponse(response.data);
     } catch (err) {
-      if (this.breaker.state === CircuitState.Open) {
+      if (this.policy.policies[1].state === CircuitState.Open) {
         this.logger.warn(
           `[${this.providerName}] Circuit breaker is OPEN, skipping provider`,
         );
