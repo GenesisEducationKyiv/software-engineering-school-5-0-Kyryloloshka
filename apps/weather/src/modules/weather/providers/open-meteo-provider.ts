@@ -3,12 +3,12 @@ import { WeatherResponse } from '@lib/common/types/weather/weather';
 import { mapToWeatherResponse } from '@lib/common/mappers/weather.mapper';
 import { GetWeatherDto } from '../../../../../../libs/common/src/types/weather/dto/get-weather.dto';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { AxiosError } from 'axios';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { LogWeatherProvider } from '../decorator/log-weather-provider.decorator';
+import { LogMethod, LoggerService } from '@lib/common';
 import { ErrorCodes } from '@lib/common';
 import {
   circuitBreaker,
@@ -23,7 +23,7 @@ import {
 @Injectable()
 export class OpenMeteoWeatherProvider implements IWeatherProvider {
   public readonly providerName = 'OpenMeteo';
-  private readonly logger = new Logger(OpenMeteoWeatherProvider.name);
+  private readonly logger = LoggerService;
   private readonly policy;
 
   constructor(
@@ -59,7 +59,7 @@ export class OpenMeteoWeatherProvider implements IWeatherProvider {
     this.policy = wrap(retryPolicy, breaker);
   }
 
-  @LogWeatherProvider()
+  @LogMethod({ context: 'OpenMeteoWeatherProvider' })
   private async getCoordinates(
     city: string,
   ): Promise<{ latitude: number; longitude: number }> {
@@ -97,7 +97,7 @@ export class OpenMeteoWeatherProvider implements IWeatherProvider {
     };
   }
 
-  @LogWeatherProvider()
+  @LogMethod({ context: 'OpenMeteoWeatherProvider' })
   async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {
     const baseUrl = this.configService.get<string>('OPENMETEO_BASE_API_URL');
 

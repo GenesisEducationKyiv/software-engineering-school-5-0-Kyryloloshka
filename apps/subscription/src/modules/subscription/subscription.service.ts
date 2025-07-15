@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Subscription } from './entities/subscription.entity';
 import { CreateSubscriptionDto } from '../../../../../libs/common/src/types/subscription/dto/create-subscription.dto';
 import { ISubscriptionService } from './interfaces/subscription-service.interface';
-import { LogSubscription } from './decorators/log-subscription.decorator';
+import { LogMethod } from '@lib/common';
 import { IEmailService } from '../email/interfaces/email-service.interface';
 import { ISubscriptionRepository } from './interfaces/subscription-repository.interface';
 import { Frequency } from '@lib/common/types/frequency';
@@ -36,7 +36,7 @@ export class SubscriptionService implements ISubscriptionService {
       this.weatherClient.getService<WeatherServiceClient>(WEATHER_SERVICE_NAME);
   }
 
-  @LogSubscription()
+  @LogMethod({ context: 'SubscriptionService' })
   async subscribe(dto: CreateSubscriptionDto): Promise<{ token: string }> {
     const existingSubscription = await this.subscriptionRepo.findOneByEmail(
       dto.email,
@@ -72,7 +72,7 @@ export class SubscriptionService implements ISubscriptionService {
     return { token };
   }
 
-  @LogSubscription()
+  @LogMethod({ context: 'SubscriptionService' })
   async confirmSubscription(dto: ConfirmSubscriptionDto): Promise<void> {
     const subscription = await this.subscriptionRepo.findOneByToken(dto.token);
 
@@ -86,7 +86,7 @@ export class SubscriptionService implements ISubscriptionService {
     await this.subscriptionRepo.save(subscription);
   }
 
-  @LogSubscription()
+  @LogMethod({ context: 'SubscriptionService' })
   async unsubscribe(dto: UnsubscribeDto): Promise<void> {
     const subscription = await this.subscriptionRepo.findOneByToken(dto.token);
 

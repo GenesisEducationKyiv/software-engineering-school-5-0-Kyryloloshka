@@ -8,7 +8,7 @@ import { RpcException } from '@nestjs/microservices';
 import { AxiosError } from 'axios';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { LogWeatherProvider } from '../decorator/log-weather-provider.decorator';
+import { LogMethod, LoggerService } from '@lib/common';
 import { ErrorCodes } from '@lib/common';
 import {
   circuitBreaker,
@@ -19,12 +19,11 @@ import {
   ExponentialBackoff,
   wrap,
 } from 'cockatiel';
-import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class WeatherApiProvider implements IWeatherProvider {
   public readonly providerName = 'WeatherAPI';
-  private readonly logger = new Logger(WeatherApiProvider.name);
+  private readonly logger = LoggerService;
   private readonly policy;
 
   constructor(
@@ -60,7 +59,7 @@ export class WeatherApiProvider implements IWeatherProvider {
     this.policy = wrap(retryPolicy, breaker);
   }
 
-  @LogWeatherProvider()
+  @LogMethod({ context: 'WeatherApiProvider' })
   async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {
     const apiKey = this.configService.get<string>('WEATHER_API_KEY');
     if (!apiKey) {

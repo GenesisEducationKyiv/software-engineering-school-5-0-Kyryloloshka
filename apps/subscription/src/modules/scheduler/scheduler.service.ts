@@ -4,7 +4,7 @@ import { Frequency } from '@lib/common/types/frequency';
 import { ISchedulerService } from './interfaces/scheduler-service.interface';
 import { Subscription } from '../subscription/entities/subscription.entity';
 import { LoggedError } from '@lib/common/errors/logged.error';
-import { LogSendUpdate } from './decorators/log-send-update.decorator';
+import { LogMethod } from '@lib/common';
 import { IEmailService } from '../email/interfaces/email-service.interface';
 import { ISubscriptionService } from '../subscription/interfaces/subscription-service.interface';
 import { ClientGrpc } from '@nestjs/microservices';
@@ -48,7 +48,7 @@ export class SchedulerService implements ISchedulerService {
     }
   }
 
-  @LogSendUpdate()
+  @LogMethod({ context: 'SchedulerService' })
   private async sendWeatherUpdate(subscription: Subscription) {
     const weather = await lastValueFrom<WeatherResponse>(
       this.weatherService.GetWeather({ city: subscription.city }),

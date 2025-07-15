@@ -5,7 +5,7 @@ import { createTransport } from 'nodemailer';
 import * as path from 'path';
 import { WeatherResponse } from '@lib/common/types/weather/weather';
 import { promises as fs } from 'fs';
-import { LogSendEmail } from './decorators/log-send-email.decorator';
+import { LogMethod } from '@lib/common';
 import { IEmailService } from './interfaces/email-service.interface';
 
 @Injectable()
@@ -43,7 +43,7 @@ export class EmailService implements IEmailService {
     return template(context);
   }
 
-  @LogSendEmail()
+  @LogMethod({ context: 'EmailService' })
   async sendConfirmationEmail(email: string, token: string): Promise<void> {
     const confirmUrl = `${this.appUrl}/confirm.html?token=${token}`;
     const html = await this.compileTemplate('confirm', { confirmUrl });
@@ -58,7 +58,7 @@ export class EmailService implements IEmailService {
     await this.transporter.sendMail(mailOptions);
   }
 
-  @LogSendEmail()
+  @LogMethod({ context: 'EmailService' })
   async sendWeatherUpdate({
     email,
     city,
