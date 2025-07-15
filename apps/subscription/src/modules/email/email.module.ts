@@ -1,32 +1,15 @@
 import { Module } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { join } from 'node:path';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { emailSenderConfigFactory } from '../../config/email-sender.config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    MailerModule.forRoot({
-      transport: {
-        host: process.env.EMAIL_HOST,
-        port: parseInt(process.env.EMAIL_PORT),
-        ignoreTLS: true,
-        secure: false,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      },
-      defaults: {
-        from: `"Weather App" <${process.env.EMAIL_USER}>`,
-      },
-      template: {
-        dir: join(process.cwd(), 'public', 'email-templates'),
-        adapter: new HandlebarsAdapter(),
-        options: {
-          strict: true,
-        },
-      },
+    ConfigModule,
+    MailerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: emailSenderConfigFactory,
     }),
   ],
   providers: [

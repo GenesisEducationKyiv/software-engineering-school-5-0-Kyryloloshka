@@ -1,19 +1,20 @@
 import { TransportOptions } from 'nodemailer';
 import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { ConfigService } from '@nestjs/config';
 
-export const emailSenderConfig = {
+export const emailSenderConfigFactory = (configService: ConfigService) => ({
   transport: {
-    host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT),
+    host: configService.get<string>('EMAIL_HOST'),
+    port: parseInt(configService.get<string>('EMAIL_PORT')),
     secure: false,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: configService.get<string>('EMAIL_USER'),
+      pass: configService.get<string>('EMAIL_PASS'),
     },
   } as TransportOptions,
   defaults: {
-    from: `"Weather App" <${process.env.EMAIL_USER}>`,
+    from: `"Weather App" <${configService.get<string>('EMAIL_USER')}>`,
   },
   template: {
     dir: join(process.cwd(), 'public', 'email-templates'),
@@ -22,4 +23,4 @@ export const emailSenderConfig = {
       strict: true,
     },
   },
-};
+});

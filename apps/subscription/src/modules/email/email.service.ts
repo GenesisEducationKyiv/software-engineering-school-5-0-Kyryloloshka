@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import Handlebars from 'handlebars';
 import { createTransport } from 'nodemailer';
 import * as path from 'path';
@@ -9,15 +10,23 @@ import { IEmailService } from './interfaces/email-service.interface';
 
 @Injectable()
 export class EmailService implements IEmailService {
-  private transporter = createTransport({
-    host: process.env.EMAIL_HOST,
-    port: parseInt(process.env.EMAIL_PORT),
-    secure: false,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  private transporter;
+  private appUrl: string;
+  private emailUser: string;
+
+  constructor(private readonly configService: ConfigService) {
+    this.transporter = createTransport({
+      host: this.configService.get<string>('EMAIL_HOST'),
+      port: parseInt(this.configService.get<string>('EMAIL_PORT')),
+      secure: false,
+      auth: {
+        user: this.configService.get<string>('EMAIL_USER'),
+        pass: this.configService.get<string>('EMAIL_PASS'),
+      },
+    });
+    this.appUrl = this.configService.get<string>('APP_URL');
+    this.emailUser = this.configService.get<string>('EMAIL_USER');
+  }
 
   private async compileTemplate(
     templateName: string,
@@ -36,11 +45,11 @@ export class EmailService implements IEmailService {
 
   @LogSendEmail()
   async sendConfirmationEmail(email: string, token: string): Promise<void> {
-    const confirmUrl = `${process.env.APP_URL}/confirm.html?token=${token}`;
+    const confirmUrl = `${this.appUrl}/confirm.html?token=${token}`;
     const html = await this.compileTemplate('confirm', { confirmUrl });
 
     const mailOptions = {
-      from: `"Weather App" <${process.env.EMAIL_USER}>`,
+      from: `"Weather App" <${this.emailUser}>`,
       to: email,
       subject: 'Confirm your weather subscription',
       html,
@@ -61,7 +70,7 @@ export class EmailService implements IEmailService {
     token: string;
     weather: WeatherResponse;
   }): Promise<void> {
-    const unsubscribeUrl = `${process.env.APP_URL}/unsubscribe.html?token=${token}`;
+    const unsubscribeUrl = `${this.appUrl}/unsubscribe.html?token=${token}`;
 
     const html = await this.compileTemplate('weather', {
       temperature: weather.temperature,
@@ -73,7 +82,7 @@ export class EmailService implements IEmailService {
     console.log(html);
 
     const mailOptions = {
-      from: `"Weather App" <${process.env.EMAIL_USER}>`,
+      from: `"Weather App" <${this.emailUser}>`,
       to: email,
       subject: `Here is your weather update ${city}`,
       html,
