@@ -27,7 +27,7 @@ describe('SubscriptionService', () => {
   let weatherServiceMock: jest.Mocked<WeatherServiceClient>;
 
   beforeEach(async () => {
-    weatherServiceMock = { getWeather: jest.fn() };
+    weatherServiceMock = { GetWeather: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -50,7 +50,7 @@ describe('SubscriptionService', () => {
 
     jest.clearAllMocks();
 
-    weatherServiceMock.getWeather.mockImplementation(() =>
+    weatherServiceMock.GetWeather.mockImplementation(() =>
       of({ temperature: 20, humidity: 80, description: 'Clear sky' }),
     );
   });
@@ -73,7 +73,7 @@ describe('SubscriptionService', () => {
 
     it('should throw BadRequestException if weather is invalid', async () => {
       repo.findOneByEmail.mockResolvedValueOnce(null);
-      weatherServiceMock.getWeather.mockImplementationOnce(() => of(null));
+      weatherServiceMock.GetWeather.mockImplementationOnce(() => of(null));
       await expect(
         service.subscribe({
           email: 'test@mail.com',
@@ -85,7 +85,7 @@ describe('SubscriptionService', () => {
 
     it('should save subscription and send confirmation email', async () => {
       repo.findOneByEmail.mockResolvedValueOnce(null);
-      weatherServiceMock.getWeather.mockImplementationOnce(() =>
+      weatherServiceMock.GetWeather.mockImplementationOnce(() =>
         of({ temperature: 20 } as any),
       );
       repo.createAndSave.mockResolvedValueOnce({ token: 'sometoken' } as any);
@@ -107,7 +107,7 @@ describe('SubscriptionService', () => {
 
     it('should throw BadRequestException if weather.temperature is missing', async () => {
       repo.findOneByEmail.mockResolvedValueOnce(null);
-      weatherServiceMock.getWeather.mockImplementationOnce(() => of({} as any));
+      weatherServiceMock.GetWeather.mockImplementationOnce(() => of({} as any));
       await expect(
         service.subscribe({
           email: 'test2@mail.com',
@@ -176,7 +176,7 @@ describe('SubscriptionService', () => {
   describe('subscribe', () => {
     it('should throw BadRequestException if weather.temperature is missing', async () => {
       repo.findOneByEmail.mockResolvedValueOnce(null);
-      weatherServiceMock.getWeather.mockImplementationOnce(() => of({} as any));
+      weatherServiceMock.GetWeather.mockImplementationOnce(() => of({} as any));
       await expect(
         service.subscribe({
           email: 'test2@mail.com',
