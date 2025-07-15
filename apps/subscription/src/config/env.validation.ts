@@ -18,4 +18,4 @@ export const envSubscriptionValidationSchema = Joi.object({
 
   PGADMIN_EMAIL: Joi.string().email().required(),
   PGADMIN_PASSWORD: Joi.string().required(),
-});
+}).unknown(true);
