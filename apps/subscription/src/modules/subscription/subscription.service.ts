@@ -49,7 +49,7 @@ export class SubscriptionService implements ISubscriptionService {
 
     try {
       const weather = await lastValueFrom(
-        this.weatherService.getWeather({ city: dto.city }),
+        this.weatherService.GetWeather({ city: dto.city }),
       );
       if (!weather || !weather.temperature) {
         throw new RpcException(

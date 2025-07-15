@@ -8,7 +8,7 @@ export interface WeatherResponse {
 }
 
 export interface WeatherServiceClient {
-  getWeather(request: GetWeatherDto): Observable<WeatherResponse>;
+  GetWeather(request: GetWeatherDto): Observable<WeatherResponse>;
 }
 
 export const WEATHER_SERVICE_NAME = 'WeatherService';

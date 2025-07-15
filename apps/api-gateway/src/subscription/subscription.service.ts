@@ -9,13 +9,14 @@ import {
   SubscribeResponse,
   ConfirmSubscriptionResponse,
   UnsubscribeResponse,
+  SubscriptionServiceClient,
 } from '@lib/common';
 import { firstValueFrom } from 'rxjs';
 import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class SubscriptionService implements ISubscriptionService {
-  private subscriptionService: any;
+  private subscriptionService: SubscriptionServiceClient;
 
   constructor(
     @Inject('SUBSCRIPTION_CLIENT')
@@ -23,14 +24,15 @@ export class SubscriptionService implements ISubscriptionService {
   ) {}
 
   onModuleInit() {
-    this.subscriptionService = this.client.getService<any>(
-      SUBSCRIPTION_SERVICE_NAME,
-    );
+    this.subscriptionService =
+      this.client.getService<SubscriptionServiceClient>(
+        SUBSCRIPTION_SERVICE_NAME,
+      );
   }
 
   async subscribe(dto: CreateSubscriptionDto): Promise<SubscribeResponse> {
     try {
-      return await firstValueFrom(this.subscriptionService.subscribe(dto));
+      return await firstValueFrom(this.subscriptionService.Subscribe(dto));
     } catch (error) {
       if (error instanceof RpcException) {
         throw error;
@@ -54,7 +56,7 @@ export class SubscriptionService implements ISubscriptionService {
 
   async unsubscribe(dto: UnsubscribeDto): Promise<UnsubscribeResponse> {
     try {
-      return await firstValueFrom(this.subscriptionService.unsubscribe(dto));
+      return await firstValueFrom(this.subscriptionService.Unsubscribe(dto));
     } catch (error) {
       if (error instanceof RpcException) {
         throw error;

@@ -52,7 +52,7 @@ describe('SchedulerService', () => {
     ];
     subSvc.findConfirmedByFrequency.mockResolvedValue(subscriptions as any);
 
-    weatherSvc.getWeather.mockImplementation(() =>
+    weatherSvc.GetWeather.mockImplementation(() =>
       of({
         temperature: 20,
         humidity: 50,
@@ -63,7 +63,7 @@ describe('SchedulerService', () => {
     await service.processDaily();
 
     expect(subSvc.findConfirmedByFrequency).toHaveBeenCalledWith('daily');
-    expect(weatherSvc.getWeather).toHaveBeenCalledTimes(2);
+    expect(weatherSvc.GetWeather).toHaveBeenCalledTimes(2);
     expect(emailSvc.sendWeatherUpdate).toHaveBeenCalledTimes(2);
     expect(emailSvc.sendWeatherUpdate).toHaveBeenCalledWith({
       email: 'a@mail.com',
@@ -97,7 +97,7 @@ describe('SchedulerService', () => {
     subSvc.findConfirmedByFrequency.mockResolvedValue([
       { id: 1, email: 'a@mail.com', city: 'Kyiv', token: 't1' },
     ] as any);
-    weatherSvc.getWeather.mockImplementationOnce(() => of(null));
+    weatherSvc.GetWeather.mockImplementationOnce(() => of(null));
 
     await service.processDaily();
 

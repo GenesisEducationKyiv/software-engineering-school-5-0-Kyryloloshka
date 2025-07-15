@@ -23,11 +23,11 @@ export interface UnsubscribeDto {
 }
 
 export interface SubscriptionServiceClient {
-  subscribe(request: CreateSubscriptionDto): Observable<SubscribeResponse>;
-  confirmSubscription(
+  Subscribe(request: CreateSubscriptionDto): Observable<SubscribeResponse>;
+  Confirm(
     request: ConfirmSubscriptionDto,
   ): Observable<ConfirmSubscriptionResponse>;
-  unsubscribe(request: UnsubscribeDto): Observable<UnsubscribeResponse>;
+  Unsubscribe(request: UnsubscribeDto): Observable<UnsubscribeResponse>;
 }
 
 export const SUBSCRIPTION_PACKAGE_NAME = 'subscription';

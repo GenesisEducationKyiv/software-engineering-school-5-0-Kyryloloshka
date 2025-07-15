@@ -51,7 +51,7 @@ export class SchedulerService implements ISchedulerService {
   @LogSendUpdate()
   private async sendWeatherUpdate(subscription: Subscription) {
     const weather = await lastValueFrom<WeatherResponse>(
-      this.weatherService.getWeather({ city: subscription.city }),
+      this.weatherService.GetWeather({ city: subscription.city }),
     );
 
     if (!weather) {

@@ -7,9 +7,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { RpcException } from '@nestjs/microservices';
+import { IWeatherService } from './interfaces/weather-service.interface';
 
 @Injectable()
-export class WeatherService {
+export class WeatherService implements IWeatherService {
   private weatherService: WeatherServiceClient;
 
   constructor(
@@ -24,7 +25,7 @@ export class WeatherService {
 
   async getWeather({ city }: GetWeatherDto): Promise<any> {
     try {
-      return await firstValueFrom(this.weatherService.getWeather({ city }));
+      return await firstValueFrom(this.weatherService.GetWeather({ city }));
     } catch (error) {
       if (error instanceof RpcException) {
         throw error;
