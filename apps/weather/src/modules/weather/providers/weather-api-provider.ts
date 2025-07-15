@@ -10,15 +10,38 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { LogWeatherProvider } from '../decorator/log-weather-provider.decorator';
 import { ErrorCodes } from '@lib/common';
+import {
+  circuitBreaker,
+  handleAll,
+  ConsecutiveBreaker,
+  CircuitState,
+} from 'cockatiel';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class WeatherApiProvider implements IWeatherProvider {
   public readonly providerName = 'WeatherAPI';
+  private readonly logger = new Logger(WeatherApiProvider.name);
+  private readonly breaker;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    this.breaker = circuitBreaker(handleAll, {
+      halfOpenAfter: 10_000,
+      breaker: new ConsecutiveBreaker(3),
+    });
+    this.breaker.onBreak(() => {
+      this.logger.warn(`[${this.providerName}] Circuit breaker OPEN`);
+    });
+    this.breaker.onReset(() => {
+      this.logger.log(`[${this.providerName}] Circuit breaker CLOSED`);
+    });
+    this.breaker.onHalfOpen(() => {
+      this.logger.log(`[${this.providerName}] Circuit breaker HALF-OPEN`);
+    });
+  }
 
   @LogWeatherProvider()
   async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {
@@ -28,34 +51,41 @@ export class WeatherApiProvider implements IWeatherProvider {
         `${ErrorCodes.WEATHER_API_ERROR}: Weather API key not configured`,
       );
     }
-
     const url = `${process.env.WEATHER_BASE_API_URL}/current.json?key=${apiKey}&q=${encodeURIComponent(city)}`;
-
-    const response = await firstValueFrom(
-      this.httpService.get(url).pipe(
-        catchError((error: AxiosError) => {
-          if (
-            error.response?.status === 400 ||
-            error.response?.status === 404
-          ) {
-            return throwError(
-              () =>
-                new RpcException(
-                  `${ErrorCodes.CITY_NOT_FOUND}: City not found`,
-                ),
-            );
-          }
-
-          return throwError(
-            () =>
-              new RpcException(
-                `${ErrorCodes.WEATHER_API_ERROR}: Failed to fetch weather data`,
-              ),
-          );
-        }),
-      ),
-    );
-
-    return mapToWeatherResponse(response.data);
+    try {
+      const response = await this.breaker.execute(() =>
+        firstValueFrom(
+          this.httpService.get(url).pipe(
+            catchError((error: AxiosError) => {
+              if (
+                error.response?.status === 400 ||
+                error.response?.status === 404
+              ) {
+                return throwError(
+                  () =>
+                    new RpcException(
+                      `${ErrorCodes.CITY_NOT_FOUND}: City not found`,
+                    ),
+                );
+              }
+              return throwError(
+                () =>
+                  new RpcException(
+                    `${ErrorCodes.WEATHER_API_ERROR}: Failed to fetch weather data`,
+                  ),
+              );
+            }),
+          ),
+        ),
+      );
+      return mapToWeatherResponse(response.data);
+    } catch (err) {
+      if (this.breaker.state === CircuitState.Open) {
+        this.logger.warn(
+          `[${this.providerName}] Circuit breaker is OPEN, skipping provider`,
+        );
+      }
+      throw err;
+    }
   }
 }
