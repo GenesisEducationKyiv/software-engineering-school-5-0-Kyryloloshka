@@ -17,9 +17,7 @@ describe('SchedulerService', () => {
     ({ sendWeatherUpdate: jest.fn() }) as any;
 
   beforeEach(async () => {
-    weatherSvc = {
-      getWeather: jest.fn(),
-    } as any;
+    weatherSvc = { GetWeather: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
