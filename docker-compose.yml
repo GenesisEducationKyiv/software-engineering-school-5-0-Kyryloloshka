@@ -8,9 +8,11 @@ services:
     ports:
       - '5435:5432'
     environment:
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-      POSTGRES_DB: ${DATABASE_NAME}
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
     env_file:
@@ -33,24 +35,69 @@ services:
     restart: always
     ports:
       - "6379:6379"
-  # api:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: weather-api
-  #   ports:
-  #     - '5000:3000'
-  #   depends_on:
-  #     - postgres
-  #   environment:
-  #     DATABASE_HOST: postgres
-  #     DATABASE_PORT: ${DATABASE_PORT}
-  #     DATABASE_USER: ${DATABASE_USER}
-  #     DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-  #     DATABASE_NAME: ${DATABASE_NAME}
-  #   env_file:
-  #     - .env
-  #   command: npm run start:prod
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - .env
+  weather:
+    build:
+      context: .
+      dockerfile: apps/weather/Dockerfile
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+    env_file:
+      - .env
+  subscription:
+    build:
+      context: .
+      dockerfile: apps/subscription/Dockerfile
+    restart: always
+    ports:
+      - "3002:3002"
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - .env
 volumes:
   pgdata:
   pgadmin_data:
