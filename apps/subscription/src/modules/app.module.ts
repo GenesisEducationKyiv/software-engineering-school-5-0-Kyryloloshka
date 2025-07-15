@@ -18,10 +18,7 @@ import { EmailModule } from './email/email.module';
     }),
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({
-      envFilePath:
-        process.env.NODE_ENV === 'test'
-          ? 'apps/subscription/.env.test.local'
-          : 'apps/subscription/.env',
+      envFilePath: 'apps/subscription/.env',
       isGlobal: true,
       validationSchema: envSubscriptionValidationSchema,
     }),

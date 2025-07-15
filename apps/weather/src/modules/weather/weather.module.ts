@@ -19,10 +19,7 @@ import { envWeatherValidationSchema } from '../../config/env.validation';
     ConfigModule,
     MetricsModule,
     ConfigModule.forRoot({
-      envFilePath:
-        process.env.NODE_ENV === 'test'
-          ? 'apps/weather/.env.test.local'
-          : 'apps/weather/.env',
+      envFilePath: 'apps/weather/.env',
       isGlobal: true,
       validationSchema: envWeatherValidationSchema,
     }),
