@@ -1,6 +1,7 @@
 import { Subscription } from './modules/subscription/entities/subscription.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import * as dotenv from 'dotenv';
+import { envSubscriptionValidationSchema } from './config/env.validation';
 dotenv.config({
   path: 'apps/subscription/.env',
 });
@@ -16,6 +17,11 @@ export const dbConfig = {
   migrations: ['apps/subscription/src/migrations/*.ts'],
 };
 
-console.log(dbConfig);
+const { error } = envSubscriptionValidationSchema.validate(process.env, {
+  abortEarly: false,
+});
+if (error) {
+  throw new Error(`Config validation error: ${error.message}`);
+}
 
 export default new DataSource(dbConfig as DataSourceOptions);
