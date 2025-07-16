@@ -7,6 +7,7 @@ import { IEmailService } from '../../../../modules/email/interfaces/email-servic
 import { ISubscriptionService } from '../../interfaces/subscription-service.interface';
 import { AppModule } from '../../../app.module';
 import { server } from '@lib/common/mock/server';
+import { of } from 'rxjs';
 
 jest.mock('@nestjs-modules/mailer/dist/adapters/handlebars.adapter', () => ({
   HandlebarsAdapter: jest.fn(),
@@ -27,11 +28,25 @@ describe('SubscriptionService Int', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
+    const weatherServiceMock = {
+      GetWeather: jest.fn().mockImplementation(() =>
+        of({
+          temperature: 20,
+          humidity: 50,
+          description: 'sunny',
+        }),
+      ),
+    };
+    const weatherClientMock = {
+      getService: jest.fn().mockReturnValue(weatherServiceMock),
+    };
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })
       .overrideProvider('IEmailService')
       .useValue(new MockEmailService())
+      .overrideProvider('WEATHER_CLIENT')
+      .useValue(weatherClientMock)
       .compile();
     app = moduleRef.createNestApplication();
     await app.init();

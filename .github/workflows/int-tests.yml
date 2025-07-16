@@ -26,13 +26,9 @@ jobs:
         run: |
           cp .env.test.example .env.test.local
           cp ./apps/subscription/.env.test.example ./apps/subscription/.env
-          cp ./apps/weather/.env.test.example ./apps/weather/.env
 
       - name: Start databases
         run: pnpm db:reset:test
-
-      - name: Start mock server
-        run: pnpm start:test weather &
 
       - name: Run tests
         run: pnpm test:int:ci
