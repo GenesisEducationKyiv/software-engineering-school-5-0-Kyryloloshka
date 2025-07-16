@@ -79,8 +79,6 @@ export class EmailService implements IEmailService {
       unsubscribeUrl,
     });
 
-    console.log(html);
-
     const mailOptions = {
       from: `"Weather App" <${this.emailUser}>`,
       to: email,

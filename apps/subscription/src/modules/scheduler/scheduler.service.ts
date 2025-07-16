@@ -5,9 +5,8 @@ import { ISchedulerService } from './interfaces/scheduler-service.interface';
 import { Subscription } from '../subscription/entities/subscription.entity';
 import { LoggedError } from '@lib/common/errors/logged.error';
 import { LogMethod } from '@lib/common';
-import { IEmailService } from '../email/interfaces/email-service.interface';
 import { ISubscriptionService } from '../subscription/interfaces/subscription-service.interface';
-import { ClientGrpc } from '@nestjs/microservices';
+import { ClientGrpc, ClientProxy } from '@nestjs/microservices';
 import { WeatherResponse, WeatherServiceClient } from '@lib/common';
 import { lastValueFrom } from 'rxjs';
 
@@ -20,8 +19,8 @@ export class SchedulerService implements ISchedulerService {
     private readonly subscriptionService: ISubscriptionService,
     @Inject('WEATHER_CLIENT')
     private readonly weatherClient: ClientGrpc,
-    @Inject('IEmailService')
-    private readonly emailService: IEmailService,
+    @Inject('NOTIFICATION_PUBLISHER')
+    private readonly notificationPublisher: ClientProxy,
   ) {}
 
   onModuleInit() {
@@ -61,7 +60,7 @@ export class SchedulerService implements ISchedulerService {
       );
     }
 
-    await this.emailService.sendWeatherUpdate({
+    this.notificationPublisher.emit('send_weather_update', {
       email: subscription.email,
       token: subscription.token,
       city: subscription.city,

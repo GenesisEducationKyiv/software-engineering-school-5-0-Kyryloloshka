@@ -8,7 +8,6 @@ import { envSubscriptionValidationSchema } from '../config/env.validation';
 import { typeOrmConfig } from '../config/typeorm.config';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
-import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -28,7 +27,6 @@ import { EmailModule } from './email/email.module';
     }),
     SubscriptionModule,
     SchedulerModule,
-    EmailModule,
   ],
 })
 export class AppModule {}

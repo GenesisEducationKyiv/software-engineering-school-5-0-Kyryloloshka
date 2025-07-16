@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SubscriptionService } from './subscription.service';
 import { ISubscriptionRepository } from './interfaces/subscription-repository.interface';
-import { IEmailService } from '../email/interfaces/email-service.interface';
 import { Subscription } from './entities/subscription.entity';
 import { Frequency } from '@lib/common/types/frequency';
 import { of } from 'rxjs';
@@ -16,15 +15,15 @@ const repoMock = (): jest.Mocked<ISubscriptionRepository> => ({
   remove: jest.fn(),
   findConfirmedByFrequency: jest.fn(),
 });
-const emailMock = (): jest.Mocked<IEmailService> => ({
-  sendConfirmationEmail: jest.fn(),
-  sendWeatherUpdate: jest.fn(),
+
+const notificationPublisherMock = () => ({
+  emit: jest.fn().mockReturnValue({ toPromise: jest.fn() }),
 });
 
 describe('SubscriptionService', () => {
   let service: SubscriptionService;
   let repo: jest.Mocked<ISubscriptionRepository>;
-  let email: jest.Mocked<IEmailService>;
+  let notificationPublisher: { emit: jest.Mock };
   let weatherServiceMock: jest.Mocked<WeatherServiceClient>;
 
   beforeEach(async () => {
@@ -34,7 +33,10 @@ describe('SubscriptionService', () => {
       providers: [
         SubscriptionService,
         { provide: 'ISubscriptionRepository', useFactory: repoMock },
-        { provide: 'IEmailService', useFactory: emailMock },
+        {
+          provide: 'NOTIFICATION_PUBLISHER',
+          useFactory: notificationPublisherMock,
+        },
         {
           provide: 'WEATHER_CLIENT',
           useValue: {
@@ -55,7 +57,7 @@ describe('SubscriptionService', () => {
 
     service = module.get<SubscriptionService>(SubscriptionService);
     repo = module.get('ISubscriptionRepository');
-    email = module.get('IEmailService');
+    notificationPublisher = module.get('NOTIFICATION_PUBLISHER');
     service.onModuleInit?.();
 
     jest.clearAllMocks();
@@ -93,13 +95,12 @@ describe('SubscriptionService', () => {
       ).rejects.toThrow('Weather for this city is not available');
     });
 
-    it('should save subscription and send confirmation email', async () => {
+    it('should save subscription and emit confirmation event', async () => {
       repo.findOneByEmail.mockResolvedValueOnce(null);
       weatherServiceMock.GetWeather.mockImplementationOnce(() =>
         of({ temperature: 20 } as any),
       );
       repo.createAndSave.mockResolvedValueOnce({ token: 'sometoken' } as any);
-      email.sendConfirmationEmail.mockResolvedValueOnce(undefined);
 
       const { token } = await service.subscribe({
         email: 'test@mail.com',
@@ -108,9 +109,12 @@ describe('SubscriptionService', () => {
       });
 
       expect(repo.createAndSave).toHaveBeenCalled();
-      expect(email.sendConfirmationEmail).toHaveBeenCalledWith(
-        'test@mail.com',
-        expect.any(String),
+      expect(notificationPublisher.emit).toHaveBeenCalledWith(
+        'subscription_created',
+        expect.objectContaining({
+          email: 'test@mail.com',
+          token: expect.any(String),
+        }),
       );
       expect(typeof token).toBe('string');
     });
