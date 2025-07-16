@@ -10,53 +10,29 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { LogMethod, LoggerService } from '@lib/common';
 import { ErrorCodes } from '@lib/common';
+import { CircuitBreakerPolicy, CircuitState } from 'cockatiel';
 import {
-  circuitBreaker,
-  handleAll,
-  ConsecutiveBreaker,
-  CircuitState,
-  retry,
-  ExponentialBackoff,
-  wrap,
-} from 'cockatiel';
+  createWeatherProviderPolicy,
+  WeatherProviderPolicy,
+} from './weather-policy.factory';
 
 @Injectable()
 export class OpenMeteoWeatherProvider implements IWeatherProvider {
   public readonly providerName = 'OpenMeteo';
   private readonly logger = LoggerService;
-  private readonly policy;
+  private readonly policy: WeatherProviderPolicy;
+  private readonly breaker: CircuitBreakerPolicy;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    const breaker = circuitBreaker(handleAll, {
-      halfOpenAfter: 10_000,
-      breaker: new ConsecutiveBreaker(3),
-    });
-    breaker.onBreak(() => {
-      this.logger.warn(`[${this.providerName}] Circuit breaker OPEN`);
-    });
-    breaker.onReset(() => {
-      this.logger.log(`[${this.providerName}] Circuit breaker CLOSED`);
-    });
-    breaker.onHalfOpen(() => {
-      this.logger.log(`[${this.providerName}] Circuit breaker HALF-OPEN`);
-    });
-
-    const retryPolicy = retry(handleAll, {
-      maxAttempts: 3,
-      backoff: new ExponentialBackoff({ initialDelay: 200, maxDelay: 1000 }),
-    });
-    retryPolicy.onRetry((info: any) => {
-      const { attempt, delay } = info;
-      const reason = info.reason ?? info.error ?? info.value;
-      this.logger.warn(
-        `[${this.providerName}] Retry attempt #${attempt} after ${delay}ms due to: ${reason instanceof Error ? reason.message : String(reason)}`,
-      );
-    });
-
-    this.policy = wrap(retryPolicy, breaker);
+    const { policy, breaker } = createWeatherProviderPolicy(
+      this.providerName,
+      this.logger,
+    );
+    this.policy = policy;
+    this.breaker = breaker;
   }
 
   @LogMethod({ context: 'OpenMeteoWeatherProvider' })
@@ -128,7 +104,7 @@ export class OpenMeteoWeatherProvider implements IWeatherProvider {
       );
       return mapToWeatherResponse(response.data);
     } catch (err) {
-      if (this.policy.policies[1].state === CircuitState.Open) {
+      if (this.breaker.state === CircuitState.Open) {
         this.logger.warn(
           `[${this.providerName}] Circuit breaker is OPEN, skipping provider`,
         );
