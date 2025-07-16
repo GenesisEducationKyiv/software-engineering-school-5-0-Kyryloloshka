@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SchedulerService } from './scheduler.service';
 import { ISubscriptionService } from '../subscription/interfaces/subscription-service.interface';
-import { IEmailService } from '../email/interfaces/email-service.interface';
 import { of } from 'rxjs';
 import { WeatherServiceClient } from '@lib/common';
 import { LoggedError } from '@lib/common/errors/logged.error';
@@ -10,12 +9,13 @@ describe('SchedulerService', () => {
   let service: SchedulerService;
   let subSvc: jest.Mocked<ISubscriptionService>;
   let weatherSvc: jest.Mocked<WeatherServiceClient>;
-  let emailSvc: jest.Mocked<IEmailService>;
+  let notificationPublisher: { emit: jest.Mock };
 
   const mockSubSvc = (): jest.Mocked<ISubscriptionService> =>
     ({ findConfirmedByFrequency: jest.fn() }) as any;
-  const mockEmailSvc = (): jest.Mocked<IEmailService> =>
-    ({ sendWeatherUpdate: jest.fn() }) as any;
+  const notificationPublisherMock = () => ({
+    emit: jest.fn().mockReturnValue({ toPromise: jest.fn() }),
+  });
 
   beforeEach(async () => {
     weatherSvc = { GetWeather: jest.fn() };
@@ -30,13 +30,16 @@ describe('SchedulerService', () => {
             getService: () => weatherSvc,
           },
         },
-        { provide: 'IEmailService', useFactory: mockEmailSvc },
+        {
+          provide: 'NOTIFICATION_PUBLISHER',
+          useFactory: notificationPublisherMock,
+        },
       ],
     }).compile();
 
     service = module.get(SchedulerService);
     subSvc = module.get('ISubscriptionService');
-    emailSvc = module.get('IEmailService');
+    notificationPublisher = module.get('NOTIFICATION_PUBLISHER');
     service.onModuleInit();
   });
 
@@ -44,7 +47,7 @@ describe('SchedulerService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should send weather updates to all confirmed daily subscriptions', async () => {
+  it('should emit weather update event for all confirmed daily subscriptions', async () => {
     const subscriptions = [
       { id: 1, email: 'a@mail.com', city: 'Kyiv', token: 't1' },
       { id: 2, email: 'b@mail.com', city: 'Lviv', token: 't2' },
@@ -63,26 +66,29 @@ describe('SchedulerService', () => {
 
     expect(subSvc.findConfirmedByFrequency).toHaveBeenCalledWith('daily');
     expect(weatherSvc.GetWeather).toHaveBeenCalledTimes(1);
-    expect(emailSvc.sendWeatherUpdate).toHaveBeenCalledTimes(1);
-    expect(emailSvc.sendWeatherUpdate).toHaveBeenCalledWith({
-      email: 'a@mail.com',
-      city: 'Kyiv',
-      token: 't1',
-      weather: {
-        temperature: 20,
-        humidity: 50,
-        description: 'Sunny',
-      },
-    });
+    expect(notificationPublisher.emit).toHaveBeenCalledTimes(1);
+    expect(notificationPublisher.emit).toHaveBeenCalledWith(
+      'send_weather_update',
+      expect.objectContaining({
+        email: 'a@mail.com',
+        city: 'Kyiv',
+        token: 't1',
+        weather: expect.objectContaining({
+          temperature: 20,
+          humidity: 50,
+          description: 'Sunny',
+        }),
+      }),
+    );
   });
 
-  it('should not send emails if no subscriptions found', async () => {
+  it('should not emit event if no subscriptions found', async () => {
     subSvc.findConfirmedByFrequency.mockResolvedValue([]);
     await service.processDaily();
-    expect(emailSvc.sendWeatherUpdate).not.toHaveBeenCalled();
+    expect(notificationPublisher.emit).not.toHaveBeenCalled();
   });
 
-  it('should not send email if weather is not found', async () => {
+  it('should not emit event if weather is not found', async () => {
     subSvc.findConfirmedByFrequency.mockResolvedValue([
       { id: 1, email: 'a@mail.com', city: 'Kyiv', token: 't1' },
     ] as any);
@@ -90,6 +96,6 @@ describe('SchedulerService', () => {
 
     await expect(service.processDaily()).rejects.toThrow(LoggedError);
 
-    expect(emailSvc.sendWeatherUpdate).not.toHaveBeenCalled();
+    expect(notificationPublisher.emit).not.toHaveBeenCalled();
   });
 });
