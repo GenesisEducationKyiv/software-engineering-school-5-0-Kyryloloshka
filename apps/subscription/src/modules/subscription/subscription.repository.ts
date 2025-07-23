@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Subscription } from './entities/subscription.entity';
-import { CreateSubscriptionDto } from '../../../../../libs/common/src/types/subscription/dto/create-subscription.dto';
+import { CreateSubscriptionData } from '@lib/common';
 import { Frequency } from '@lib/common/types/frequency';
 import { ISubscriptionRepository } from './interfaces/subscription-repository.interface';
 
@@ -21,11 +21,9 @@ export class SubscriptionRepository implements ISubscriptionRepository {
     return this.repo.findOne({ where: { token } });
   }
 
-  async createAndSave(
-    dto: CreateSubscriptionDto & { token: string },
-  ): Promise<Subscription> {
+  async createAndSave(data: CreateSubscriptionData): Promise<Subscription> {
     const subscription = this.repo.create({
-      ...dto,
+      ...data,
       confirmed: false,
     });
     return this.repo.save(subscription);

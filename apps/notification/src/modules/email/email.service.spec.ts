@@ -18,7 +18,7 @@ describe('EmailService', () => {
                 EMAIL_PORT: '587',
                 EMAIL_USER: 'test@test.com',
                 EMAIL_PASS: 'password',
-                APP_URL: 'http://localhost',
+                APP_URL: 'http://localhost:4200',
               };
               return config[key];
             }),

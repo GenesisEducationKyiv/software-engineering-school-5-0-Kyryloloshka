@@ -23,7 +23,9 @@
     "start:weather:dev": "cross-env NODE_ENV=development dotenv -e .env -- nest start weather --watch",
     "start:subscription": "nest start subscription",
     "start:subscription:dev": "cross-env NODE_ENV=development dotenv -e .env -- nest start subscription --watch",
-    "start:all:dev": "concurrently \"pnpm start:gateway:dev\" \"pnpm start:weather:dev\" \"pnpm start:subscription:dev\"",
+    "start:notification": "nest start notification",
+    "start:notification:dev": "cross-env NODE_ENV=development dotenv -e .env -- nest start notification --watch",
+    "start:all:dev": "concurrently \"pnpm start:gateway:dev\" \"pnpm start:weather:dev\" \"pnpm start:notification:dev\" \"pnpm start:subscription:dev\"",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "npm run typeorm -- migration:generate src/migrations/InitMigration -d apps/subscription/src/data-source.ts",
     "migration:run": "npm run typeorm -- migration:run -d apps/subscription/src/data-source.ts",
@@ -57,7 +59,10 @@
     "docker:logs": "docker compose logs -f",
     "docker:test": "docker compose -f docker-compose.test.yml up --build --abort-on-container-exit",
     "clean": "rm -rf dist coverage",
-    "clean:all": "pnpm clean && rm -rf node_modules pnpm-lock.yaml"
+    "clean:all": "pnpm clean && rm -rf node_modules pnpm-lock.yaml",
+    "client:dev": "pnpm --filter client dev",
+    "client:build": "pnpm --filter client build",
+    "client:start": "pnpm --filter client start"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.13.4",

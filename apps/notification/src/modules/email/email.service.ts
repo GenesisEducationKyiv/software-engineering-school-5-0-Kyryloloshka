@@ -45,7 +45,7 @@ export class EmailService implements IEmailService {
 
   @LogMethod({ context: 'EmailService' })
   async sendConfirmationEmail(email: string, token: string): Promise<void> {
-    const confirmUrl = `${this.appUrl}/confirm.html?token=${token}`;
+    const confirmUrl = `${this.appUrl}/confirm?token=${token}`;
     const html = await this.compileTemplate('confirm', { confirmUrl });
 
     const mailOptions = {
@@ -70,7 +70,7 @@ export class EmailService implements IEmailService {
     token: string;
     weather: WeatherResponse;
   }): Promise<void> {
-    const unsubscribeUrl = `${this.appUrl}/unsubscribe.html?token=${token}`;
+    const unsubscribeUrl = `${this.appUrl}/unsubscribe?token=${token}`;
 
     const html = await this.compileTemplate('weather', {
       temperature: weather.temperature,

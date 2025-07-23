@@ -12,4 +12,4 @@ export async function GET(req: NextRequest) {
     status: res.status,
     headers: { 'Content-Type': 'application/json' },
   });
-} 
+}

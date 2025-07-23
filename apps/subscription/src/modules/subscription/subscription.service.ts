@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Subscription } from './entities/subscription.entity';
-import { CreateSubscriptionDto } from '../../../../../libs/common/src/types/subscription/dto/create-subscription.dto';
+import { CreateSubscriptionDto, CreateSubscriptionData } from '@lib/common';
 import { ISubscriptionService } from './interfaces/subscription-service.interface';
 import { LogMethod } from '@lib/common';
 import { ISubscriptionRepository } from './interfaces/subscription-repository.interface';
@@ -62,15 +62,22 @@ export class SubscriptionService implements ISubscriptionService {
       }
     } catch (error) {
       this.metricsService.errorCounter.inc();
-      throw error;
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw new RpcException(`${ErrorCodes.CITY_NOT_FOUND}: City not found`);
     }
 
     const token = generateToken();
 
-    await this.subscriptionRepo.createAndSave({
-      ...dto,
+    const subscriptionData: CreateSubscriptionData = {
+      email: dto.email,
+      city: dto.city,
+      frequency: dto.frequency,
       token,
-    });
+    };
+
+    await this.subscriptionRepo.createAndSave(subscriptionData);
 
     this.notificationPublisher.emit('subscription_created', {
       email: dto.email,

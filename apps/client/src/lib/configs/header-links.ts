@@ -10,5 +10,5 @@ export const headerLinks = [
   {
     label: 'Subscribe',
     href: '/subscribe',
-  }
+  },
 ] as const;

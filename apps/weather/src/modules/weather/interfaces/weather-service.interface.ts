@@ -1,6 +1,6 @@
 import { WeatherResponse } from '@lib/common/types/weather/weather';
-import { GetWeatherDto } from '../../../../../../libs/common/src/types/weather/dto/get-weather.dto';
+import { GetWeatherData } from '@lib/common';
 
 export interface IWeatherService {
-  getWeather({ city }: GetWeatherDto): Promise<WeatherResponse>;
+  getWeather(data: GetWeatherData): Promise<WeatherResponse>;
 }
