@@ -1,0 +1,109 @@
+@mixin animation($animation) {
+  -webkit-animation: $animation;
+  -moz-animation: $animation;
+  -ms-animation: $animation;
+  -o-animation: $animation;
+  animation: $animation; 
+}
+
+@mixin animation-duration($duration) {
+  -webkit-animation-duration: $duration;
+  -moz-animation-duration: $duration;
+  -ms-animation-duration: $duration;
+  -o-animation-duration: $duration;
+  animation-duration: $duration; 
+}
+
+@mixin keyframes($name) {
+  @-webkit-keyframes #{$name} {
+    @content; 
+  }
+  @-moz-keyframes #{$name} {
+    @content;
+  }
+  @-ms-keyframes #{$name} {
+    @content;
+  }
+  @keyframes #{$name} {
+    @content;
+  } 
+}
+
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.cloud {
+  animation: clouds 60s infinite linear;
+  border-radius: 10px;
+  position: relative;
+  margin: 33px 0 0 0;
+  
+  width: 54px;
+  height: 5px;
+  
+  background: #f7e7eb;
+  
+  &.tiny {
+    transform: scale(.5); 
+  }
+  
+  &.small {
+    transform: scale(1); 
+  }
+  
+  &.normal {
+    transform: scale(2); 
+  }
+  
+  &.large {
+    transform: scale(4); 
+  }
+  
+  div {
+    box-shadow: inset -2px -3px 0 0 #f7e7eb;
+    position: absolute;
+  
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+    
+    left: -3px;
+    bottom: 0;
+  
+    background: #fafbf0;
+    z-index: 10;
+    
+    &:first-child {
+      & + div {
+        transform: scale(1.6, 1.6);
+        margin: 0 0 4px 13px;
+        z-index: 9;
+        
+        & + div {
+          transform: scale(2.4, 2.4);
+          margin: 0 0 9px 32px;
+          z-index: 8;
+        
+          & + div {
+            transform: scale(1.3, 1.3);
+            margin: 0 0 2px 50px;
+            z-index: 7;
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes clouds {
+  0% {
+    left: -100%; 
+  }
+  
+  100% {
+    left: 120%;
+  }
+}
