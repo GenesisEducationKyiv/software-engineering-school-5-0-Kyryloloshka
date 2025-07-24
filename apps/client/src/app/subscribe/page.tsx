@@ -92,7 +92,7 @@ const SubscribePage = () => {
             </Button>
           </div>
           {error && <div className="text-red-500 mt-2">{error}</div>}
-          {success && <div className="text-green-700 mt-2">{success}</div>}
+          {success && <div className="text-primary mt-2">{success}</div>}
         </div>
       </form>
     </main>
