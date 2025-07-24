@@ -24,6 +24,7 @@ jobs:
 
       - name: Copy local env file
         run: |
+          cp .env.test.example .env.test.local
           cp ./apps/subscription/.env.test.example ./apps/subscription/.env
 
       - name: Start databases
