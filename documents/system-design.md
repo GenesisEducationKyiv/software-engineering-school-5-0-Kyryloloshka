@@ -1,8 +1,8 @@
-# System Design Document (SDD): Weather Forecast API
+# System Design Document (SDD): Weather Forecast Microservices
 
 ## 1. Description of the project 
 
-This is a rest API service that allows users to subscribe to the city's weather forecast and receive an hour's upgrade or daily on Email. 
+This is a microservices-based REST API system that allows users to subscribe to city weather forecasts and receive hourly or daily updates via email. The system is built using a microservices architecture with three main services: API Gateway, Weather Service, and Subscription Service.
 
 --- 
 
@@ -10,49 +10,57 @@ This is a rest API service that allows users to subscribe to the city's weather 
 
 ### 2.1 Functional requirements 
 
-- User registration through Email. 
-- Email confirmation (token). 
-- subscription to the weather update (city + period). 
-- change / delete subscription. 
-- Sending the weather updates on Email according to subscription. 
+- User registration through Email
+- Email confirmation (token)
+- Subscription to weather updates (city + period)
+- Change/delete subscription
+- Sending weather updates via Email according to subscription
+- Real-time weather data fetching
+- Caching for performance optimization
 
-### 2.2 non-functional requirements 
+### 2.2 Non-functional requirements 
 
-- Starting in Docker Composite. 
-- High availability of service. 
-- The possibility of horizontal scaling. 
-- Treatment >= 1000 EMAIL-District/h. 
-- Cover the main parts with tests. 
-- Database migration when starting. 
+- Microservices architecture with Docker containers
+- High availability and fault tolerance
+- Horizontal scaling capability
+- Processing >= 1000 emails/hour
+- Comprehensive test coverage
+- Database migrations on startup
+- Service discovery and load balancing
 
 ### 2.3 Restrictions 
 
-- Only Postgresql as a DBMS. 
-- Weather data with Weatherapi.
+- PostgreSQL as primary database
+- Redis for caching
+- Weather data from WeatherAPI and OpenMeteo
+- gRPC for inter-service communication
 
 ---
 
-## 3. The load estimate 
+## 3. Load estimation 
 
 ### 3.1 Users and Traffic 
 
-- Number of users: up to 1000 active. 
-- Requests: 10 req/sec on average.
+- Number of users: up to 1000 active
+- Requests: 10 req/sec on average
 - Peak load: ~20 req/sec 
-- Email mailing: up to 1000 email/h. 
+- Email sending: up to 1000 emails/hour
+- Weather API calls: ~10k req/day
 
 ### 3.2 Data 
 
-- Tables: Subscripts. 
-- Database volume: up to 500 MB. 
-- average volume of one request to API: <10 kb. 
+- Tables: Subscriptions, Users
+- Database volume: up to 500 MB
+- Average request size: <10 KB
+- Cache hit ratio: >80%
 
-### 3.3 The bandwidth 
+### 3.3 Bandwidth 
 
-- Integration with OpenWEATHER API: ~10k req/day. 
-- Sending Email via SMTP: ~ 1000 Email/hour. 
-- Input traffic: ~ 5–10 MB/day. 
-- Outgoing traffic (email): ~ 50 MB/day.
+- Integration with Weather APIs: ~10k req/day
+- Email via SMTP: ~1000 emails/hour
+- Incoming traffic: ~5-10 MB/day
+- Outgoing traffic (email): ~50 MB/day
+- Inter-service communication: ~1-2 MB/day
 
 ---
 
@@ -60,54 +68,161 @@ This is a rest API service that allows users to subscribe to the city's weather 
 
 ```mermaid
 flowchart TD
-    User[Користувач] --> API[RESTAPI]
-    API --> Auth[Auth Module]
-    API --> Sub[Subscription Module]
-    API --> Email[Email Sender]
-    API --> Weather[Weather Fetcher]
-    API --> DB[(PostgreSQL)]
-    Weather -->|pull| WeatherAPI[Weather API]
-    Email -->|send| nodemailer[Nodemailer smtp]
+    subgraph Client Layer
+        Web[Web Client]
+        API[API Client]
+    end
+
+    subgraph API Gateway Layer
+        Gateway[API Gateway]
+        LB[Load Balancer]
+    end
+
+    subgraph Microservices Layer
+        WeatherService[Weather Service]
+        SubscriptionService[Subscription Service]
+    end
+
+    subgraph Infrastructure Layer
+        DB[(PostgreSQL)]
+        Redis[(Redis Cache)]
+        WeatherAPI[Weather API]
+        OpenMeteo[OpenMeteo API]
+        SMTP[SMTP Service]
+    end
+
+    Web --> Gateway
+    API --> Gateway
+    Gateway --> LB
+    LB --> WeatherService
+    LB --> SubscriptionService
+    
+    WeatherService --> WeatherAPI
+    WeatherService --> OpenMeteo
+    WeatherService --> Redis
+    SubscriptionService --> DB
+    SubscriptionService --> SMTP
+    SubscriptionService --> Redis
 ```
 
-## 5. Технологічний стек
+## 5. Technology Stack
 
 | Component | Technology | 
-| ---------------------- | ----------------------------- | 
-| API Framework | Nestjs (typescript) | 
-| Orm | Typeorm | 
-| DBMS | Postgresql | 
-| Email Service | nodemailer | 
-| Weather API | WeatherAPI | 
-| Migration | Typeorm Migration CLI | 
-| Testing | Jest | 
+|-----------|------------| 
+| API Gateway | NestJS (TypeScript) | 
+| Weather Service | NestJS (TypeScript) |
+| Subscription Service | NestJS (TypeScript) |
+| ORM | TypeORM | 
+| Database | PostgreSQL | 
+| Cache | Redis |
+| Email Service | Nodemailer | 
+| Weather APIs | WeatherAPI, OpenMeteo | 
+| Inter-service Communication | gRPC + Protocol Buffers |
+| Migration | TypeORM Migration CLI | 
+| Testing | Jest + Playwright | 
 | Containerization | Docker + Docker Compose |
-| Caching | Redis |
-| Testing Framework | Jest |
+| Service Discovery | Direct service calls |
+| Load Balancing | API Gateway routing |
 
 ---
 
 ## 6. Detailed component design 
 
-### 6.1 Subscription module 
+### 6.1 API Gateway (`apps/api-gateway`)
 
-- Creation, viewing, editing and deleting subscription. 
-- Validation of the subscription interval (`Hourly`,` Daily`). 
-- Binding to a specific user. 
-- Storage in the Subscripts' table. 
+**Responsibilities:**
+- Single entry point for all client requests
+- Request routing to appropriate microservices
+- Authentication and authorization
+- Rate limiting and request validation
+- API documentation (Swagger)
+- Error handling and logging
+- Load balancing
 
-### 6.2 Email Sender (Cron) 
+**Key Features:**
+- gRPC client connections to microservices
+- Request/response transformation
+- Circuit breaker pattern implementation
+- Request logging and monitoring
 
-- Search for active subscriptions by time. 
-- Getting the current weather with Weather Fetcher. 
-- Formation of the Email template. 
-- Sending Email via SMTP. 
+### 6.2 Weather Service (`apps/weather`)
 
-### 6.3 Weather Fetcher 
+**Responsibilities:**
+- Fetch weather data from external APIs
+- Cache weather data for performance
+- Provide weather endpoints
+- Handle weather data formatting
+- Weather provider fallback logic
 
-- Call Weather Api with the key. 
-- Parsing response to a simplified structure. 
-- (optional) Caching the answer for 10 minutes. 
-- Error processing and timeouts. 
+**Key Features:**
+- Multiple weather provider support
+- Intelligent caching strategy
+- Provider failover mechanism
+- Weather data normalization
+- Metrics and monitoring
+
+### 6.3 Subscription Service (`apps/subscription`)
+
+**Responsibilities:**
+- User subscription management
+- Email sending and template management
+- Scheduled weather updates
+- Database operations
+- Email confirmation workflows
+
+**Key Features:**
+- Subscription CRUD operations
+- Email template system
+- Scheduled job processing
+- Database migrations
+- Email delivery tracking
 
 ---
+
+## 7. Data Flow
+
+### 7.1 Weather Request Flow
+1. Client → API Gateway
+2. API Gateway → Weather Service (gRPC)
+3. Weather Service → Cache check
+4. If cache miss: Weather Service → External Weather APIs
+5. Weather Service → Cache update
+6. Weather Service → API Gateway
+7. API Gateway → Client
+
+### 7.2 Subscription Flow
+1. Client → API Gateway
+2. API Gateway → Subscription Service (gRPC)
+3. Subscription Service → Database
+4. Subscription Service → Email Service
+5. Subscription Service → API Gateway
+6. API Gateway → Client
+
+### 7.3 Scheduled Email Flow
+1. Scheduler → Subscription Service
+2. Subscription Service → Database (get active subscriptions)
+3. Subscription Service → Weather Service (get weather data)
+4. Subscription Service → Email templates
+5. Subscription Service → SMTP (send emails)
+
+---
+
+## 8. Deployment Strategy
+
+### 8.1 Container Architecture
+- Each service runs in its own Docker container
+- Shared infrastructure services (PostgreSQL, Redis)
+- Service-to-service communication via gRPC
+- External service integrations via REST APIs
+
+### 8.2 Scaling Strategy
+- Horizontal scaling per service
+- Load balancing at API Gateway level
+- Database connection pooling
+- Redis clustering for high availability
+
+### 8.3 Monitoring and Observability
+- Service health checks
+- Request/response logging
+- Performance metrics
+- Error tracking and alerting
