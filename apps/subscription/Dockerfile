@@ -8,7 +8,6 @@ COPY libs ./libs
 COPY proto ./proto
 COPY nest-cli.json ./
 COPY tsconfig*.json ./
-COPY .env .
 RUN pnpm build:subscription
 
 # ---- Production stage ----
