@@ -3,11 +3,11 @@ import { DataSource } from 'typeorm';
 import { CreateSubscriptionDto } from '../../../../../../../libs/common/src/types/subscription/dto/create-subscription.dto';
 import { Subscription } from '../../entities/subscription.entity';
 import { INestApplication } from '@nestjs/common';
-import { IEmailService } from '../../../../modules/email/interfaces/email-service.interface';
 import { ISubscriptionService } from '../../interfaces/subscription-service.interface';
 import { AppModule } from '../../../app.module';
 import { server } from '@lib/common/mock/server';
 import { of } from 'rxjs';
+import { IEmailService } from 'apps/notification/src/modules/email';
 
 jest.mock('@nestjs-modules/mailer/dist/adapters/handlebars.adapter', () => ({
   HandlebarsAdapter: jest.fn(),

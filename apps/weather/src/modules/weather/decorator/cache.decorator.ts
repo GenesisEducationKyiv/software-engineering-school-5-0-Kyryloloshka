@@ -1,5 +1,5 @@
 import { IWeatherProvider } from '../interfaces/weather-provider.interface';
-import { GetWeatherDto } from '../../../../../../libs/common/src/types/weather/dto/get-weather.dto';
+import { GetWeatherData } from '@lib/common';
 import Redis from 'ioredis';
 import { MetricsService } from '../metrics/metrics.service';
 import { WeatherResponse } from '@lib/common';
@@ -15,9 +15,9 @@ export class WeatherProviderCacheDecorator implements IWeatherProvider {
     private readonly cacheEnabled: boolean = true,
   ) {}
 
-  async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {
+  async getWeather(data: GetWeatherData): Promise<WeatherResponse> {
     const end = this.metrics.cacheDuration.startTimer();
-    const cacheKey = `weather:${city}`;
+    const cacheKey = `weather:${data.city}`;
 
     if (this.cacheEnabled) {
       const cached = await this.redis.get(cacheKey);
@@ -29,7 +29,7 @@ export class WeatherProviderCacheDecorator implements IWeatherProvider {
     }
 
     this.metrics.cacheMissCounter.inc();
-    const result = await this.provider.getWeather({ city });
+    const result = await this.provider.getWeather(data);
 
     if (this.cacheEnabled) {
       await this.redis.set(

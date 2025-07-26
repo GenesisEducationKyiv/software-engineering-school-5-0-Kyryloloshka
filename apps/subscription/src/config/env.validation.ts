@@ -9,13 +9,7 @@ export const envSubscriptionValidationSchema = Joi.object({
 
   PORT: Joi.number().integer().positive().required(),
 
-  EMAIL_HOST: Joi.string().required(),
-  EMAIL_PORT: Joi.number().integer().positive().required(),
-  EMAIL_USER: Joi.string().email().required(),
-  EMAIL_PASS: Joi.string().required(),
-
-  APP_URL: Joi.string().uri().required(),
-
   PGADMIN_EMAIL: Joi.string().email().required(),
   PGADMIN_PASSWORD: Joi.string().required(),
+  RMQ_URL: Joi.string().uri().required(),
 }).unknown(true);

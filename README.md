@@ -277,3 +277,15 @@ All inter-service communication uses gRPC with Protocol Buffers:
 #### API Gateway
 - All endpoints are proxied through the gateway
 - Swagger documentation available at `/api/`
+
+## Запуск фронтенду (Next.js)
+
+З кореня проєкту використовуйте:
+
+- `pnpm client:dev` — запуск у режимі розробки
+- `pnpm client:build` — зібрати production-білд
+- `pnpm client:start` — запустити production-сервер (після білду)
+
+Фронтенд знаходиться у `apps/client`.
+
+> Для роботи скриптів потрібен pnpm та налаштовані workspaces (налаштовано у цьому репозиторії).

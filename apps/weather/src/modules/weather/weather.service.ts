@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IWeatherProvider } from './interfaces/weather-provider.interface';
 import { IWeatherService } from './interfaces/weather-service.interface';
-import { GetWeatherDto, WeatherResponse } from '@lib/common';
+import { GetWeatherData, WeatherResponse } from '@lib/common';
 
 @Injectable()
 export class WeatherService implements IWeatherService {
@@ -10,7 +10,7 @@ export class WeatherService implements IWeatherService {
     private readonly weatherProvider: IWeatherProvider,
   ) {}
 
-  async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {
-    return this.weatherProvider.getWeather({ city });
+  async getWeather(data: GetWeatherData): Promise<WeatherResponse> {
+    return this.weatherProvider.getWeather(data);
   }
 }

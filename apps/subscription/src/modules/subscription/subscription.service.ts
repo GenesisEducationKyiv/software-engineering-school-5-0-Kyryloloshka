@@ -1,12 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Subscription } from './entities/subscription.entity';
-import { CreateSubscriptionDto } from '../../../../../libs/common/src/types/subscription/dto/create-subscription.dto';
+import { CreateSubscriptionDto, CreateSubscriptionData } from '@lib/common';
 import { ISubscriptionService } from './interfaces/subscription-service.interface';
 import { LogMethod } from '@lib/common';
-import { IEmailService } from '../email/interfaces/email-service.interface';
 import { ISubscriptionRepository } from './interfaces/subscription-repository.interface';
 import { Frequency } from '@lib/common/types/frequency';
-import { ClientGrpc } from '@nestjs/microservices';
+import { ClientGrpc, ClientProxy } from '@nestjs/microservices';
+import { Inject as InjectNest } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
 import {
   ConfirmSubscriptionDto,
@@ -24,13 +24,13 @@ export class SubscriptionService implements ISubscriptionService {
   private weatherService: WeatherServiceClient;
 
   constructor(
-    @Inject('IEmailService')
-    private readonly emailService: IEmailService,
     @Inject('WEATHER_CLIENT')
     private readonly weatherClient: ClientGrpc,
     @Inject('ISubscriptionRepository')
     private readonly subscriptionRepo: ISubscriptionRepository,
     private readonly metricsService: MetricsService,
+    @InjectNest('NOTIFICATION_PUBLISHER')
+    private readonly notificationPublisher: ClientProxy,
   ) {}
 
   onModuleInit() {
@@ -62,17 +62,27 @@ export class SubscriptionService implements ISubscriptionService {
       }
     } catch (error) {
       this.metricsService.errorCounter.inc();
-      throw error;
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw new RpcException(`${ErrorCodes.CITY_NOT_FOUND}: City not found`);
     }
 
     const token = generateToken();
 
-    await this.subscriptionRepo.createAndSave({
-      ...dto,
+    const subscriptionData: CreateSubscriptionData = {
+      email: dto.email,
+      city: dto.city,
+      frequency: dto.frequency,
+      token,
+    };
+
+    await this.subscriptionRepo.createAndSave(subscriptionData);
+
+    this.notificationPublisher.emit('subscription_created', {
+      email: dto.email,
       token,
     });
-
-    await this.emailService.sendConfirmationEmail(dto.email, token);
 
     this.metricsService.subscribeCounter.inc();
     return { token };

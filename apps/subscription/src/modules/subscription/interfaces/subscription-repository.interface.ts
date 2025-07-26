@@ -1,15 +1,13 @@
 import { Frequency } from '@lib/common/types/frequency';
-import { CreateSubscriptionDto } from '../../../../../../libs/common/src/types/subscription/dto/create-subscription.dto';
 import { Subscription } from '../entities/subscription.entity';
+import { CreateSubscriptionData } from '@lib/common';
 
 export interface ISubscriptionRepository {
   findOneByEmail(email: string): Promise<Subscription | null>;
 
   findOneByToken(token: string): Promise<Subscription | null>;
 
-  createAndSave(
-    dto: CreateSubscriptionDto & { token: string },
-  ): Promise<Subscription>;
+  createAndSave(data: CreateSubscriptionData): Promise<Subscription>;
 
   save(subscription: Subscription): Promise<Subscription>;
 

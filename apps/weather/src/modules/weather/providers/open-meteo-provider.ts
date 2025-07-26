@@ -1,7 +1,7 @@
 import { IWeatherProvider } from '../interfaces/weather-provider.interface';
 import { WeatherResponse } from '@lib/common/types/weather/weather';
 import { mapToWeatherResponse } from '@lib/common/mappers/weather.mapper';
-import { GetWeatherDto } from '../../../../../../libs/common/src/types/weather/dto/get-weather.dto';
+import { GetWeatherData } from '@lib/common';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
@@ -74,10 +74,10 @@ export class OpenMeteoWeatherProvider implements IWeatherProvider {
   }
 
   @LogMethod({ context: 'OpenMeteoWeatherProvider' })
-  async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {
+  async getWeather(data: GetWeatherData): Promise<WeatherResponse> {
     const baseUrl = this.configService.get<string>('OPENMETEO_BASE_API_URL');
 
-    const { latitude, longitude } = await this.getCoordinates(city);
+    const { latitude, longitude } = await this.getCoordinates(data.city);
     const getWeatherUrl = `${baseUrl}/forecast?latitude=${latitude}&longitude=${longitude}&current-weather=true&current=relative_humidity_2m,temperature_2m,weather_code,is_day`;
     try {
       const response = await this.policy.execute(() =>

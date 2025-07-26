@@ -1,7 +1,7 @@
 import { IWeatherProvider } from '../interfaces/weather-provider.interface';
 import { WeatherResponse } from '@lib/common/types/weather/weather';
 import { mapToWeatherResponse } from '@lib/common/mappers/weather.mapper';
-import { GetWeatherDto } from '../../../../../../libs/common/src/types/weather/dto/get-weather.dto';
+import { GetWeatherData } from '@lib/common';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
 import { Injectable } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
@@ -36,14 +36,14 @@ export class WeatherApiProvider implements IWeatherProvider {
   }
 
   @LogMethod({ context: 'WeatherApiProvider' })
-  async getWeather({ city }: GetWeatherDto): Promise<WeatherResponse> {
+  async getWeather(data: GetWeatherData): Promise<WeatherResponse> {
     const apiKey = this.configService.get<string>('WEATHER_API_KEY');
     if (!apiKey) {
       throw new RpcException(
         `${ErrorCodes.WEATHER_API_ERROR}: Weather API key not configured`,
       );
     }
-    const url = `${process.env.WEATHER_BASE_API_URL}/current.json?key=${apiKey}&q=${encodeURIComponent(city)}`;
+    const url = `${process.env.WEATHER_BASE_API_URL}/current.json?key=${apiKey}&q=${encodeURIComponent(data.city)}`;
     try {
       const response = await this.policy.execute(() =>
         firstValueFrom(
