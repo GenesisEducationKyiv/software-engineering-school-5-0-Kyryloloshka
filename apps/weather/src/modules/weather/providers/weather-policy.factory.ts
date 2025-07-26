@@ -28,13 +28,15 @@ export function createWeatherProviderPolicy(
     breaker: new ConsecutiveBreaker(3),
   });
   breaker.onBreak(() => {
-    logger.warn(`[${providerName}] Circuit breaker OPEN`);
+    logger.warn('Circuit breaker OPEN', providerName, { state: 'open' });
   });
   breaker.onReset(() => {
-    logger.log(`[${providerName}] Circuit breaker CLOSED`);
+    logger.log('Circuit breaker CLOSED', providerName, { state: 'closed' });
   });
   breaker.onHalfOpen(() => {
-    logger.log(`[${providerName}] Circuit breaker HALF-OPEN`);
+    logger.log('Circuit breaker HALF-OPEN', providerName, {
+      state: 'half-open',
+    });
   });
 
   const retryPolicy = retry(handleAll, {
@@ -44,9 +46,11 @@ export function createWeatherProviderPolicy(
   retryPolicy.onRetry((info: any) => {
     const { attempt, delay } = info;
     const reason = info.reason ?? info.error ?? info.value;
-    logger.warn(
-      `[${providerName}] Retry attempt #${attempt} after ${delay}ms due to: ${reason instanceof Error ? reason.message : String(reason)}`,
-    );
+    logger.warn(`Retry attempt #${attempt}`, providerName, {
+      attempt,
+      delay,
+      reason: reason instanceof Error ? reason.message : String(reason),
+    });
   });
 
   return { policy: wrap(retryPolicy, breaker), breaker };

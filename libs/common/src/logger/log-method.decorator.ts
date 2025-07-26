@@ -13,23 +13,34 @@ export function LogMethod(options?: {
     descriptor.value = async function (...args: any[]) {
       const context = options?.context || target.constructor.name;
       const level = options?.level || 'log';
+      const startTime = Date.now();
+
       try {
-        LoggerService[level](
-          `[${context}] Calling ${propertyKey} with args: %j`,
+        LoggerService[level](`Calling ${propertyKey}`, context, {
           args,
-        );
+          method: propertyKey,
+        });
+
         const result = await originalMethod.apply(this, args);
-        LoggerService[level](
-          `[${context}] Result from ${propertyKey}: %j`,
+        const duration = Date.now() - startTime;
+
+        LoggerService[level](`Completed ${propertyKey}`, context, {
           result,
-        );
+          method: propertyKey,
+          duration,
+        });
+
         return result;
       } catch (error) {
+        const duration = Date.now() - startTime;
+
         LoggerService.error(
-          `[${context}] Error in ${propertyKey} with args: %j: %s`,
-          args,
-          error instanceof Error ? error.message : 'Unknown error',
+          `Error in ${propertyKey}`,
+          context,
+          { args, method: propertyKey, duration },
+          error instanceof Error ? error : new Error(String(error)),
         );
+
         throw error;
       }
     };

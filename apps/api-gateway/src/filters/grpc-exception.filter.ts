@@ -3,31 +3,36 @@ import {
   Catch,
   ArgumentsHost,
   HttpStatus,
-  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { RpcException } from '@nestjs/microservices';
-import { ErrorCodes } from '@lib/common';
+import { ErrorCodes, LoggerService } from '@lib/common';
 
 @Catch(RpcException)
 export class GrpcExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(GrpcExceptionFilter.name);
-
   catch(exception: RpcException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest();
     const error = exception.getError() as any;
 
-    this.logger.error(
-      `gRPC Error: ${error.code || 'UNKNOWN'} - ${error.message}`,
-      error.stack,
+    LoggerService.error(
+      'gRPC Error',
+      'GrpcExceptionFilter',
+      {
+        code: error.code || 'UNKNOWN',
+        message: error.message,
+        url: request.url,
+        method: request.method,
+        userAgent: request.headers['user-agent'],
+        ip: request.ip,
+      },
+      new Error(error.message || 'gRPC Error'),
     );
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
 
-    // Map gRPC error codes to HTTP status codes
     switch (error.code) {
       case ErrorCodes.CITY_NOT_FOUND:
         status = HttpStatus.NOT_FOUND;
@@ -72,9 +77,13 @@ export class GrpcExceptionFilter implements ExceptionFilter {
       method: request.method,
     };
 
-    this.logger.log(
-      `HTTP Response: ${status} - ${message} for ${request.method} ${request.url}`,
-    );
+    LoggerService.log('HTTP Response', 'GrpcExceptionFilter', {
+      status,
+      message,
+      method: request.method,
+      url: request.url,
+      responseTime: Date.now() - (request._startTime || Date.now()),
+    });
 
     response.status(status).json(errorResponse);
   }
