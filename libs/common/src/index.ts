@@ -4,3 +4,4 @@ export * from './types';
 export * from './mappers/weather.mapper';
 export * from './types/errors';
 export * from './logger';
+export * from './errors/error-mapper.service';

@@ -14,4 +14,7 @@ export const envWeatherValidationSchema = Joi.object({
 
   CACHE_ENABLED: Joi.boolean().default(true),
   CACHE_WEATHER_TTL: Joi.number().integer().positive().default(600),
+
+  GRPC_URL: Joi.string().required(),
+  SERVICE_NAME: Joi.string().default('weather'),
 });

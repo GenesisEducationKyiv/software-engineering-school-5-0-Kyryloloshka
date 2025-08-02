@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { LoggerService } from '@lib/common';
 import { ISubscriptionService } from '../interfaces/subscription-service.interface';
 
 export function LogSubscription() {
@@ -7,20 +7,50 @@ export function LogSubscription() {
     propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
-    const logger = new Logger(target.constructor.name);
     const originalMethod = descriptor.value;
     descriptor.value = async function (
       this: ISubscriptionService,
       ...args: any[]
     ) {
+      const startTime = Date.now();
+
       try {
-        logger.log(`Calling ${propertyKey} with args:`, args);
+        LoggerService.log(
+          `Calling ${propertyKey}`,
+          target.constructor.name,
+          {
+            args,
+            method: propertyKey,
+          },
+          `${target.constructor.name}.${propertyKey}`,
+        );
+
         const result = await originalMethod.apply(this, args);
+        const duration = Date.now() - startTime;
+
+        LoggerService.log(
+          `Completed ${propertyKey}`,
+          target.constructor.name,
+          {
+            result,
+            method: propertyKey,
+            duration,
+          },
+          `${target.constructor.name}.${propertyKey}`,
+        );
+
         return result;
       } catch (error) {
-        logger.error(
-          `[${propertyKey}] with args: ${JSON.stringify(args)}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        const duration = Date.now() - startTime;
+
+        LoggerService.error(
+          `Error in ${propertyKey}`,
+          target.constructor.name,
+          { args, method: propertyKey, duration },
+          error instanceof Error ? error : new Error(String(error)),
+          `${target.constructor.name}.${propertyKey}`,
         );
+
         throw error;
       }
     };

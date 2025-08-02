@@ -7,4 +7,5 @@ export const envNotificationValidationSchema = Joi.object({
   EMAIL_PASS: Joi.string().required(),
   APP_URL: Joi.string().uri().required(),
   RMQ_URL: Joi.string().uri().required(),
+  SERVICE_NAME: Joi.string().default('notification'),
 });

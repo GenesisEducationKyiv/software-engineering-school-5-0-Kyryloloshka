@@ -12,4 +12,7 @@ export const envSubscriptionValidationSchema = Joi.object({
   PGADMIN_EMAIL: Joi.string().email().required(),
   PGADMIN_PASSWORD: Joi.string().required(),
   RMQ_URL: Joi.string().uri().required(),
+  WEATHER_SERVICE_URL: Joi.string().uri().required(),
+  GRPC_URL: Joi.string().required(),
+  SERVICE_NAME: Joi.string().default('subscription'),
 }).unknown(true);

@@ -13,12 +13,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     ClientsModule.registerAsync([
       {
         name: 'WEATHER_CLIENT',
-        useFactory: () => ({
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
           transport: Transport.GRPC,
           options: {
             package: WEATHER_PACKAGE_NAME,
             protoPath: join(process.cwd(), 'proto/weather.proto'),
-            url: '0.0.0.0:5000',
+            url:
+              configService.get<string>('WEATHER_SERVICE_URL') ||
+              'weather:5000',
           },
         }),
       },

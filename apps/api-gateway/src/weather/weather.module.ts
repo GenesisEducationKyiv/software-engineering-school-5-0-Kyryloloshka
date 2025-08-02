@@ -14,7 +14,7 @@ import { WEATHER_PACKAGE_NAME } from '@lib/common';
         options: {
           package: WEATHER_PACKAGE_NAME,
           protoPath: join(process.cwd(), 'proto/weather.proto'),
-          url: '0.0.0.0:5000',
+          url: process.env.WEATHER_SERVICE_URL || 'weather:5000',
         },
       },
     ]),

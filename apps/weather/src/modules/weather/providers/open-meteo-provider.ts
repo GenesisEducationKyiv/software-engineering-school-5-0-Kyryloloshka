@@ -106,7 +106,9 @@ export class OpenMeteoWeatherProvider implements IWeatherProvider {
     } catch (err) {
       if (this.breaker.state === CircuitState.Open) {
         this.logger.warn(
-          `[${this.providerName}] Circuit breaker is OPEN, skipping provider`,
+          'Circuit breaker is OPEN, skipping provider',
+          this.providerName,
+          { city: data.city },
         );
       }
       throw err;

@@ -198,25 +198,55 @@ docker compose up --build
 
 6. Open the API documentation at `localhost:5000/api/`
 
-**Development mode:**
+### Development
 
-1. Start the development environment:
-```sh
-# Start infrastructure services (PostgreSQL, Redis)
-docker compose up postgres redis -d
+Start services in development mode:
 
-# Run database migrations
-pnpm migration:run
+```bash
+# API Gateway
+cd apps/api-gateway && pnpm start:dev
 
-# Start all services in development mode
-pnpm start:all:dev
+# Weather Service
+cd apps/weather && pnpm start:dev
+
+# Subscription Service
+cd apps/subscription && pnpm start:dev
+
+# Notification Service
+cd apps/notification && pnpm start:dev
 ```
 
-2. Access the services:
-   - API Gateway: `localhost:3000/api/`
-   - Weather Service: `localhost:3001/`
-   - Subscription Service: `localhost:3002/`
-   - Health checks: `localhost:3000/health`, `localhost:3001/health`, `localhost:3002/health`
+### Production Ports
+
+When running with Docker Compose, services are available at:
+
+- **API Gateway**: http://localhost:3005
+- **Weather Service**: http://localhost:3004
+- **Subscription Service**: http://localhost:3006
+- **Notification Service**: http://localhost:3007
+- **Grafana**: http://localhost:3003
+- **Loki**: http://localhost:3100
+- **PostgreSQL**: localhost:5435
+- **Redis**: localhost:6379
+- **RabbitMQ**: localhost:5672
+- **pgAdmin**: http://localhost:5050
+
+### Setup
+
+1. Start the monitoring stack:
+   ```bash
+   docker-compose up loki promtail grafana -d
+   ```
+
+2. Access Grafana:
+   - URL: http://localhost:3003
+   - Username: `admin`
+   - Password: `admin`
+
+3. Start your services:
+   ```bash
+   docker-compose up -d
+   ```
 
 ###  Testing
 

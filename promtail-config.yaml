@@ -1,0 +1,61 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: docker
+          __path__: /var/lib/docker/containers/*/*log
+    pipeline_stages:
+      # Фільтруємо тільки логи з наших сервісів
+      - match:
+          selector: '{job="docker"}'
+          stages:
+            - regex:
+                expression: '.*genesis-test-assignment.*'
+            - json:
+                expressions:
+                  stream: stream
+                  attrs: attrs
+                  tag: attrs.tag
+                  time: time
+                  level: level
+                  message: message
+                  context: context
+                  duration: duration
+                  metadata: metadata
+                  error: error
+            # Фільтруємо тільки JSON логи з нашими полями
+            - match:
+                selector: '{job="docker"}'
+                stages:
+                  - json:
+                      expressions:
+                        timestamp: timestamp
+                        level: level
+                        message: message
+                        context: context
+                  # Виключаємо логи без наших полів
+                  - match:
+                      selector: '{job="docker"}'
+                      stages:
+                        - regex:
+                            expression: '.*"timestamp".*"level".*"message".*'
+                        - labels:
+                            stream:
+                            tag:
+                        - timestamp:
+                            source: time
+                            format: RFC3339Nano
+                        - output:
+                            source: message 

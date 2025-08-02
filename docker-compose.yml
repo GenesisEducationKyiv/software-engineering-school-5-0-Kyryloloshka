@@ -1,38 +1,57 @@
 services:
   postgres:
     image: postgres:15
-    container_name: pg-weather
+    container_name: postgres
     restart: always
     ports:
       - '5435:5432'
-    environment:
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - POSTGRES_USER=${DATABASE_USER}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_DB=${DATABASE_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
     env_file:
-      - .env
+      - apps/subscription/.env
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: pgadmin-weather
+    container_name: pgadmin
     restart: always
     depends_on:
       - postgres
     ports:
       - '5050:80'            
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    env_file:
+      - apps/subscription/.env
   redis:
     image: redis:7
     restart: always
     ports:
       - "6379:6379"
+  loki:
+    image: grafana/loki:2.9.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+  promtail:
+    image: grafana/promtail:2.9.0
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./promtail-config.yaml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+  grafana:
+    image: grafana/grafana:10.0.0
+    ports:
+      - "3200:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - loki
   api-gateway:
     build:
       context: .
@@ -40,20 +59,11 @@ services:
     restart: always
     ports:
       - "3000:3000"
-    environment:
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DATABASE_NAME=${DATABASE_NAME}
-      - NODE_ENV=production
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+    env_file:
+      - apps/api-gateway/.env
     depends_on:
       - postgres
       - redis
-    env_file:
-      - .env
   weather:
     build:
       context: .
@@ -61,19 +71,10 @@ services:
     restart: always
     ports:
       - "3001:3001"
-    environment:
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DATABASE_NAME=${DATABASE_NAME}
-      - NODE_ENV=production
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+    env_file:
+      - apps/weather/.env
     depends_on:
       - redis
-    env_file:
-      - .env
   subscription:
     build:
       context: .
@@ -81,20 +82,11 @@ services:
     restart: always
     ports:
       - "3002:3002"
-    environment:
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=${DATABASE_USER}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
-      - DATABASE_NAME=${DATABASE_NAME}
-      - NODE_ENV=production
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+    env_file:
+      - apps/subscription/.env
     depends_on:
       - postgres
       - redis
-    env_file:
-      - .env
   notification:
     build:
       context: .
@@ -102,14 +94,8 @@ services:
     restart: always
     ports:
       - "3003:3003"
-    environment:
-      - EMAIL_HOST=smtp.gmail.com
-      - EMAIL_PORT=587
-      - EMAIL_USER=${EMAIL_USER}
-      - EMAIL_PASS=${EMAIL_PASS}
-      - APP_URL=${APP_URL}
     env_file:
-      - .env
+      - apps/notification/.env
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -118,3 +104,4 @@ services:
 volumes:
   pgdata:
   pgadmin_data:
+  grafana_data:

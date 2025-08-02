@@ -13,7 +13,7 @@ import { join } from 'path';
         options: {
           package: 'subscription',
           protoPath: join(process.cwd(), 'proto/subscription.proto'),
-          url: '0.0.0.0:5001',
+          url: process.env.SUBSCRIPTION_SERVICE_URL || 'subscription:5001',
         },
       },
     ]),
