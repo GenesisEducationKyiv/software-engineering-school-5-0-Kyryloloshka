@@ -4,6 +4,8 @@ interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
+  service?: string;
+  caller?: string;
   context?: string;
   duration?: number;
   metadata?: Record<string, any>;
@@ -19,6 +21,7 @@ export class LoggerService {
   private static rateLimitMs: number = parseInt(
     process.env.LOG_RATE_LIMIT_MS || '10000',
   );
+  private static serviceName: string = process.env.SERVICE_NAME || 'unknown';
 
   static setRateLimit(ms: number): void {
     if (ms < 0) {
@@ -27,20 +30,26 @@ export class LoggerService {
     LoggerService.rateLimitMs = ms;
   }
 
+  static setServiceName(name: string): void {
+    LoggerService.serviceName = name;
+  }
+
   static log(
     message: string,
     context?: string,
     metadata?: Record<string, any>,
+    caller?: string,
   ) {
-    this.print('log', message, context, metadata);
+    this.print('log', message, context, metadata, undefined, caller);
   }
 
   static warn(
     message: string,
     context?: string,
     metadata?: Record<string, any>,
+    caller?: string,
   ) {
-    this.print('warn', message, context, metadata);
+    this.print('warn', message, context, metadata, undefined, caller);
   }
 
   static error(
@@ -48,24 +57,27 @@ export class LoggerService {
     context?: string,
     metadata?: Record<string, any>,
     error?: Error,
+    caller?: string,
   ) {
-    this.print('error', message, context, metadata, error);
+    this.print('error', message, context, metadata, error, caller);
   }
 
   static debug(
     message: string,
     context?: string,
     metadata?: Record<string, any>,
+    caller?: string,
   ) {
-    this.print('debug', message, context, metadata);
+    this.print('debug', message, context, metadata, undefined, caller);
   }
 
   static info(
     message: string,
     context?: string,
     metadata?: Record<string, any>,
+    caller?: string,
   ) {
-    this.print('info', message, context, metadata);
+    this.print('info', message, context, metadata, undefined, caller);
   }
 
   private static shouldLog(level: LogLevel, context: string): boolean {
@@ -91,6 +103,7 @@ export class LoggerService {
     context?: string,
     metadata?: Record<string, any>,
     error?: Error,
+    caller?: string,
   ) {
     if (!LoggerService.shouldLog(level, context || 'default')) {
       return;
@@ -100,6 +113,8 @@ export class LoggerService {
       timestamp: new Date().toISOString(),
       level,
       message,
+      service: LoggerService.serviceName,
+      caller: caller || 'unknown',
       context: context || 'default',
       metadata: metadata || {},
     };

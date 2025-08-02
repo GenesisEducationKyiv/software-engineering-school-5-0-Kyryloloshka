@@ -44,7 +44,7 @@ services:
   grafana:
     image: grafana/grafana:10.0.0
     ports:
-      - "3200:3200"
+      - "3200:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
@@ -52,50 +52,50 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - loki
-  # api-gateway:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/api-gateway/Dockerfile
-  #   restart: always
-  #   ports:
-  #     - "3000:3000"
-  #   env_file:
-  #     - apps/api-gateway/.env
-  #   depends_on:
-  #     - postgres
-  #     - redis
-  # weather:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/weather/Dockerfile
-  #   restart: always
-  #   ports:
-  #     - "3001:3001"
-  #   env_file:
-  #     - apps/weather/.env
-  #   depends_on:
-  #     - redis
-  # subscription:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/subscription/Dockerfile
-  #   restart: always
-  #   ports:
-  #     - "3002:3002"
-  #   env_file:
-  #     - apps/subscription/.env
-  #   depends_on:
-  #     - postgres
-  #     - redis
-  # notification:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/notification/Dockerfile
-  #   restart: always
-  #   ports:
-  #     - "3003:3003"
-  #   env_file:
-  #     - apps/notification/.env
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - apps/api-gateway/.env
+    depends_on:
+      - postgres
+      - redis
+  weather:
+    build:
+      context: .
+      dockerfile: apps/weather/Dockerfile
+    restart: always
+    ports:
+      - "3001:3001"
+    env_file:
+      - apps/weather/.env
+    depends_on:
+      - redis
+  subscription:
+    build:
+      context: .
+      dockerfile: apps/subscription/Dockerfile
+    restart: always
+    ports:
+      - "3002:3002"
+    env_file:
+      - apps/subscription/.env
+    depends_on:
+      - postgres
+      - redis
+  notification:
+    build:
+      context: .
+      dockerfile: apps/notification/Dockerfile
+    restart: always
+    ports:
+      - "3003:3003"
+    env_file:
+      - apps/notification/.env
   rabbitmq:
     image: rabbitmq:3-management
     ports:

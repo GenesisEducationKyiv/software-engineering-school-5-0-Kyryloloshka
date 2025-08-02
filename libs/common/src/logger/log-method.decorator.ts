@@ -14,21 +14,59 @@ export function LogMethod(options?: {
       const context = options?.context || target.constructor.name;
       const level = options?.level || 'log';
       const startTime = Date.now();
+      const caller = `${target.constructor.name}.${propertyKey}`;
 
       try {
-        LoggerService[level](`Calling ${propertyKey}`, context, {
-          args,
-          method: propertyKey,
-        });
+        if (level === 'error') {
+          LoggerService.error(
+            `Calling ${propertyKey}`,
+            context,
+            {
+              args,
+              method: propertyKey,
+            },
+            undefined,
+            caller,
+          );
+        } else {
+          LoggerService[level](
+            `Calling ${propertyKey}`,
+            context,
+            {
+              args,
+              method: propertyKey,
+            },
+            caller,
+          );
+        }
 
         const result = await originalMethod.apply(this, args);
         const duration = Date.now() - startTime;
 
-        LoggerService[level](`Completed ${propertyKey}`, context, {
-          result,
-          method: propertyKey,
-          duration,
-        });
+        if (level === 'error') {
+          LoggerService.error(
+            `Completed ${propertyKey}`,
+            context,
+            {
+              result,
+              method: propertyKey,
+              duration,
+            },
+            undefined,
+            caller,
+          );
+        } else {
+          LoggerService[level](
+            `Completed ${propertyKey}`,
+            context,
+            {
+              result,
+              method: propertyKey,
+              duration,
+            },
+            caller,
+          );
+        }
 
         return result;
       } catch (error) {
@@ -39,6 +77,7 @@ export function LogMethod(options?: {
           context,
           { args, method: propertyKey, duration },
           error instanceof Error ? error : new Error(String(error)),
+          caller,
         );
 
         throw error;

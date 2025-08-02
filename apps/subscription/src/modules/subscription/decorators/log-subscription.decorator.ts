@@ -15,19 +15,29 @@ export function LogSubscription() {
       const startTime = Date.now();
 
       try {
-        LoggerService.log(`Calling ${propertyKey}`, target.constructor.name, {
-          args,
-          method: propertyKey,
-        });
+        LoggerService.log(
+          `Calling ${propertyKey}`,
+          target.constructor.name,
+          {
+            args,
+            method: propertyKey,
+          },
+          `${target.constructor.name}.${propertyKey}`,
+        );
 
         const result = await originalMethod.apply(this, args);
         const duration = Date.now() - startTime;
 
-        LoggerService.log(`Completed ${propertyKey}`, target.constructor.name, {
-          result,
-          method: propertyKey,
-          duration,
-        });
+        LoggerService.log(
+          `Completed ${propertyKey}`,
+          target.constructor.name,
+          {
+            result,
+            method: propertyKey,
+            duration,
+          },
+          `${target.constructor.name}.${propertyKey}`,
+        );
 
         return result;
       } catch (error) {
@@ -38,6 +48,7 @@ export function LogSubscription() {
           target.constructor.name,
           { args, method: propertyKey, duration },
           error instanceof Error ? error : new Error(String(error)),
+          `${target.constructor.name}.${propertyKey}`,
         );
 
         throw error;
