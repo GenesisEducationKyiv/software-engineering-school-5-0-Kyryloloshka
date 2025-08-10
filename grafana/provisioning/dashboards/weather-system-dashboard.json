@@ -1,0 +1,117 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Weather System Dashboard",
+    "tags": ["weather", "microservices"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Log Volume by Service",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate({job=\"docker\"} |= \"level\" | json | unwrap timestamp [5m])) by (container_name)",
+            "legendFormat": "{{container_name}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "displayMode": "list"
+            }
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Error Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(rate({job=\"docker\"} |= \"error\" | json [5m])) by (container_name)",
+            "legendFormat": "{{container_name}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear"
+            }
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Method Execution Time",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "avg({job=\"docker\"} |= \"duration\" | json | unwrap duration [5m]) by (container_name)",
+            "legendFormat": "{{container_name}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear"
+            },
+            "unit": "ms"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Recent Logs",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"docker\"} | json | line_format \"{{.timestamp}} [{{.level}}] {{.context}}: {{.message}}\"",
+            "maxLines": 100
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 16
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "5s"
+  }
+} 
